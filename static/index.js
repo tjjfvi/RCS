@@ -177,20 +177,20 @@ $(() => {
 
 	function updateRotations(){
 		[
-			{ rotation: faceRotation, rotationQueue: faceRotationQueue, rotateGroup: faceRotateGroup, rotate: rotateFace, cube: false },
-			{ rotation: cubeRotation, rotationQueue: cubeRotationQueue, rotateGroup: cubeRotateGroup, rotate: rotateCube, cube: true  },
-		].map(({ rotation, rotationQueue, rotateGroup, rotate, cube }) => {
+			{ rotation: faceRotation, rotationQueue: faceRotationQueue, rotateGroup: faceRotateGroup, groupPieces: groupPiecesFace, cube: false },
+			{ rotation: cubeRotation, rotationQueue: cubeRotationQueue, rotateGroup: cubeRotateGroup, groupPieces: groupPiecesCube, cube: true  },
+		].map(({ rotation, rotationQueue, rotateGroup, groupPieces, cube }) => {
 			if(!rotation) return;
 			if(rotation.progress >= 1) {
 				if(cube) cubeRotation = null;
 				else faceRotation = null;
-				if(rotationQueue.length) rotate(rotationQueue.shift());
+				if(rotationQueue.length) groupPieces(rotationQueue.shift());
 				return;
 			}
 
 			rotation.progress += 0.01 * Date.delta / (rotation.insta ? 1 : 4);
 
-			let face = faces[cube ? rotation.faceKey : pieces[rotation.faceKey].userData.originalPiece];
+			let face = faces[cube ? rotation.faceKey : rotation.rotFaceKey];
 
 			rotateGroup.rotation["xyz"[face.axis]] =
 				Math.min(rotation.progress, 1) *
@@ -302,28 +302,52 @@ $(() => {
 	}
 
 	function rotateCube({ insta, faceKey, amount }){
-		if(cubeRotation) return cubeRotationQueue.push({ insta, faceKey, amount });
-
-		cubeRotation = { insta, faceKey, amount, progress: 0 };
+		let rotation = { insta, faceKey, amount, progress: 0 };
 
 		let updatedPieces = Object.assign({}, ...pieceKeys.map(key => ({ [rotatePieceKey(key, faceKey, amount)]: pieces[key] })));
 
+		Object.assign(pieces, updatedPieces);
+
+		groupPiecesCube(rotation);
+	}
+
+	function groupPiecesCube(rotation){
+		if(cubeRotation) return cubeRotationQueue.push(rotation);
+		console.log(rotation, cubeRotation);
+
+		cubeRotation = rotation;
+
 		cube.applyMatrix(cubeRotateGroup.matrix);
 		cubeRotateGroup.rotation.set(0, 0, 0);
-
-		Object.assign(pieces, updatedPieces);
 	}
 
 	function rotateFace({ insta, faceKey, double, amount }){
-		if(faceRotation) return faceRotationQueue.push({ insta, faceKey, double, amount });
-
-		faceRotation = { insta, faceKey, double, amount, progress: 0 };
-
 		let otherFaceKey = findFace(faces[faceKey].axis, -faces[faceKey].dir);
 
 		let facePieceKeys = pieceKeys.filter(k => k.includes(faceKey) || (double && k.includes(otherFaceKey)));
 
+		let rotation = {
+			insta,
+			faceKey,
+			rotFaceKey: pieces[faceKey].userData.originalPiece,
+			double,
+			amount,
+			pieces: facePieceKeys.map(k => pieces[k]),
+			cube: false,
+			progress: 0,
+		};
+
 		let updatedPieces = Object.assign({}, ...facePieceKeys.map(key => ({ [rotatePieceKey(key, faceKey, amount)]: pieces[key] })));
+
+		Object.assign(pieces, updatedPieces);
+
+		groupPiecesFace(rotation);
+	}
+
+	function groupPiecesFace(rotation){
+		if(faceRotation) return faceRotationQueue.push(rotation);
+
+		faceRotation = rotation;
 
 		faceRotateGroup.children.concat([]).map(child => {
 			child.applyMatrix(faceRotateGroup.matrix);
@@ -333,12 +357,10 @@ $(() => {
 
 		faceRotateGroup.rotation.set(0, 0, 0);
 
-		facePieceKeys.map(key => pieces[key]).map(piece => {
+		rotation.pieces.map(piece => {
 			scene.remove(piece);
 			faceRotateGroup.add(piece);
-		})
-
-		Object.assign(pieces, updatedPieces);
+		});
 	}
 
 	function rotate({ face = { faceKey: "u", amount: 0 }, cube = { faceKey: "u", amount: 0 }, insta }){
