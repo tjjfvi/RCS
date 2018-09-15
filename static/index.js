@@ -72,7 +72,7 @@ $(() => {
 
 	const scene = new t.Scene();
 	const camera = new t.PerspectiveCamera(60, window.innerWidth / window.innerHeight, .1, 1000);
-	const renderer = new t.WebGLRenderer();
+	const renderer = new t.WebGLRenderer({ antialias: true });
 
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = t.PCFShadowMap;
