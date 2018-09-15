@@ -18,7 +18,7 @@ $(() => {
 				return t;
 			}).reverse()
 		,
-		scramble: () => interpretAlgorithm(genScramble().scramble().join(" ")).map(t => ({...t, insta: true})),
+		scramble: () => interpretAlgorithm(genScramble()).map(t => ({...t, insta: true})),
 	};
 
 	Math.tau = 6.283185307179586;
@@ -401,5 +401,14 @@ $(() => {
 				findFace(...rotate(faces[f].axis, faces[f].dir * amount))
 		).sort().join("");
 		return rotKey;
+	}
+
+	function genScramble(){
+		let turns = [..."RUFLBDxyzMES".split(""), ..."RUFLBD".split("").map(s => s + "w")];
+		let directions = " 2 '".split(" ");
+		return [...Array(25)].map(() =>
+			turns[Math.floor(Math.random() * turns.length)] +
+			directions[Math.floor(Math.random() * directions.length)]
+		).join(" ");
 	}
 })
