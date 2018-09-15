@@ -218,7 +218,75 @@ $(() => {
 		let dimensions = [cubeletSize, cubeletSize, cubeletSize];
 		dimensions[face.axis] = tileThickness;
 
-		let tile = new t.Mesh(new t.CubeGeometry(...dimensions), new t.MeshStandardMaterial({ color: face.color }));
+		let x0 = cubeletSize/2;
+		let y0 = cubeletSize/2;
+		let z = tileThickness/2;
+		let x1 = x0 - z;
+		let y1 = y0 - z;
+
+		z *= -face.dir;
+
+		let tileFaces = [
+			[+x0, -y0, -z],
+			[-x0, +y0, -z],
+			[-x0, -y0, -z],
+
+			[-x0, +y0, -z],
+			[+x0, -y0, -z],
+			[+x0, +y0, -z],
+
+			[+x1, +y1, +z],
+			[-x0, +y0, -z],
+			[+x0, +y0, -z],
+
+			[-x0, +y0, -z],
+			[+x1, +y1, +z],
+			[-x1, +y1, +z],
+
+			[+x0, -y0, -z],
+			[+x1, +y1, +z],
+			[+x0, +y0, -z],
+
+			[+x1, +y1, +z],
+			[+x0, -y0, -z],
+			[+x1, -y1, +z],
+
+			[+x1, +y1, +z],
+			[-x1, -y1, +z],
+			[-x1, +y1, +z],
+
+			[-x1, -y1, +z],
+			[+x1, +y1, +z],
+			[+x1, -y1, +z],
+
+			[-x1, -y1, +z],
+			[-x0, +y0, -z],
+			[-x1, +y1, +z],
+
+			[-x0, +y0, -z],
+			[-x1, -y1, +z],
+			[-x0, -y0, -z],
+
+			[-x1, -y1, +z],
+			[+x0, -y0, -z],
+			[-x0, -y0, -z],
+
+			[+x0, -y0, -z],
+			[-x1, -y1, +z],
+			[+x1, -y1, +z],
+		];
+
+		if(z > 0) tileFaces.reverse()
+
+		tileFaces.map(p => [...Array(face.axis + 1)].map(() => p.unshift(p.pop())));
+
+		let geo = new t.BufferGeometry();
+
+		geo.addAttribute("position", new t.BufferAttribute(new Float32Array([].concat(...tileFaces)), 3));
+
+		geo.computeVertexNormals();
+
+		let tile = new t.Mesh(geo, new t.MeshStandardMaterial({ color: face.color }));
 
 		tile.position["xyz"[face.axis]] = face.dir * (cubeletSize / 2 - tileThickness / 2);
 
