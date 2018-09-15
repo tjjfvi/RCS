@@ -124,9 +124,6 @@ $(() => {
 
 		updateRotations();
 
-		// cube.rotation.x = Math.tau/16;
-		// cube.rotation.y = -Math.tau/16;
-
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();
 
@@ -152,7 +149,6 @@ $(() => {
 						: []
 					) : [turn]))
 					turns = turns.concat(newTurns);
-					console.log(turns);
 					newTurns.map(rotate);
 
 					history.unshift(val);
