@@ -18,7 +18,7 @@ $(() => {
 				return t;
 			}).reverse()
 		,
-		scramble: () => interpretAlgorithm(genScramble().scramble().join(" ")),
+		scramble: () => interpretAlgorithm(genScramble().scramble().join(" ")).map(t => ({...t, insta: true})),
 	};
 
 	Math.tau = 6.283185307179586;
@@ -186,7 +186,7 @@ $(() => {
 				return;
 			}
 
-			rotation.progress += rotation.insta ? 1 : 0.01 * Date.delta / 4;
+			rotation.progress += 0.01 * Date.delta / (rotation.insta ? 1 : 4);
 
 			let face = faces[cube ? rotation.faceKey : pieces[rotation.faceKey].userData.originalPiece];
 
@@ -282,9 +282,9 @@ $(() => {
 			if(!m) return { orig: moveStr };
 
 			const amount = {
-				"":  1,
-				"'": -1,
-				"2":  2,
+				"":    1,
+				"'":  -1,
+				"2":   2,
 			}[m[5]];
 
 			if(m[1]) {
