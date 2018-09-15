@@ -17,6 +17,8 @@ $(() => {
 				t.insta = true;
 				return t;
 			}).reverse()
+		,
+		scramble: () => interpretAlgorithm(genScramble().scramble().join(" ")),
 	};
 
 	Math.tau = 6.283185307179586;
