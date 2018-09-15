@@ -148,6 +148,12 @@ $(() => {
 							(commands[turn.orig.slice(1)] || (() => []))(_.cloneDeep({ turns }))
 						: []
 					) : [turn]))
+
+					if(e.shiftKey) newTurns.reverse().map(t => {
+						if(t.face) t.face.amount *= -1;
+						if(t.cube) t.cube.amount *= -1;
+					});
+
 					turns = turns.concat(newTurns);
 					newTurns.map(rotate);
 
