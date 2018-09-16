@@ -31,7 +31,7 @@ body, html {
 	text-align: center;
 	font-size: 20px;
 
-	width: 33vw;
+	min-width: 33vw;
 
 	position: absolute;
 	top: calc(90% + 25px + 25px);

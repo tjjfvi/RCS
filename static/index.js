@@ -4,15 +4,24 @@ $(() => {
 	const cubeletSeperation = .2;
 
 	const commands = {
-		t: () => interpretAlgorithm("R U R' U' R' F R2 U' R' U' R U R' F'"),
-		ja: () => interpretAlgorithm("R U R' F' R U R' U' R' F R2 U' R' U'"),
-		jb: () => interpretAlgorithm("y2 L' U2 L U L' U2 R U' L U R' y2"),
-		y: () => interpretAlgorithm("F R U' R' U' R U R' F' R U R' U' R' F R F'"),
-		ra: () => interpretAlgorithm("L U2 L' U2 L F' L' U' L U L F L2 U"),
-		pause: () => interpretAlgorithm("     "),
 		solve,
 		solveSlow: () => solve(false),
-		scramble: () => interpretAlgorithm(genScramble()).map(t => ({...t, insta: true})),
+		scramble: () => interpretAlgorithm(genScramble()).map(t => ({...t, insta: true})).map(rotate),
+		scrambleSlow: () => interpretAlgorithm(genScramble()).map(rotate),
+		insta: () => [
+			faceRotation,
+			cubeRotation,
+			...faceRotationQueue,
+			...cubeRotationQueue
+		].map(r => r && (r.insta = true)),
+	};
+
+	const presetAlgorithms = {
+		t: "R U R' U' R' F R2 U' R' U' R U R' F'",
+		ja: "R U R' F' R U R' U' R' F R2 U' R' U'",
+		jb: "y2 L' U2 L U L' U2 R U' L U R' y2",
+		y: "F R U' R' U' R U R' F' R U R' U' R' F R F'",
+		ra: "L U2 L' U2 L F' L' U' L U L F L2 U",
 	};
 
 	Math.tau = 6.283185307179586;
@@ -129,27 +138,29 @@ $(() => {
 		let history = JSON.parse(localStorage.history || "[]");
 		let historyInd = -1;
 
-		let turns = [];
-
 		$(".algorithm").keyup(function(e){
 			switch(e.key){
 				case "Enter":
 					let val = $(this).val();
 
-					let newTurns = interpretAlgorithm(val);
-					newTurns = [].concat(...newTurns.map(turn => turn.orig ? (
-						turn.orig[0] === ":" ?
-							(commands[turn.orig.slice(1)] || (() => []))(_.cloneDeep({ turns }))
-						: []
-					) : [turn]))
-
-					if(e.shiftKey) newTurns.reverse().map(t => {
+					let reverse = turns => (e.shiftKey ? turns.reverse().map(t => {
 						if(t.face) t.face.amount *= -1;
 						if(t.cube) t.cube.amount *= -1;
-					});
+						return t;
+					}) : turns);
 
-					turns = turns.concat(newTurns);
-					newTurns.map(rotate);
+					let turns = interpretAlgorithm(val);
+
+					console.log(reverse(turns));
+
+					turns.map(turn => {
+						if(!turn.orig) return rotate(turn);
+
+						if(turn.orig[0] === "~")
+							return reverse(interpretAlgorithm(presetAlgorithms[turn.orig.slice(1)] || "")).map(rotate);
+
+						if(turn.orig[0] === ":") return (commands[turn.orig.slice(1)] || (() => []))();
+					});
 
 					history.unshift(val);
 					historyInd = -1;
@@ -181,10 +192,11 @@ $(() => {
 
 		$(".suggestions").html((() => {
 
-			if(!word) return ["<b>:</b>", ..."LRUDFBxyzMES".split("")];
+			if(!word) return ["<b>:</b>", ..."~LRUDFBxyzMES".split("")];
 
 			return [
 				...Object.keys(commands).map(c => ":" + c),
+				...Object.keys(presetAlgorithms).map(a => "~" + a),
 				...[].concat(...[..."RUFLBDxyzMES".split(""), ..."RUFLBD".split("").map(s => s + "w")].map(
 					m => ["", "'", "2"].map(a => m + a)
 				)),
