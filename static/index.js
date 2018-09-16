@@ -158,7 +158,7 @@ $(() => {
 
 					localStorage.history = JSON.stringify(history);
 
-					return;
+					break;
 
 				case "ArrowUp":
 				case "ArrowDown":
@@ -167,8 +167,30 @@ $(() => {
 
 					historyInd = newInd;
 					$(this).val(history[historyInd]);
+
+					break;
 			}
-		})
+			updateSuggestions();
+		});
+		updateSuggestions();
+	}
+
+	function updateSuggestions(){
+		let text = $(".algorithm").val();
+		let word = text.split(" ").reverse()[0];
+
+		$(".suggestions").html((() => {
+
+			if(!word) return ["<b>:</b>", ..."LRUDFBxyzMES".split("")];
+
+			return [
+				...Object.keys(commands).map(c => ":" + c),
+				...[].concat(...[..."RUFLBDxyzMES".split(""), ..."RUFLBD".split("").map(s => s + "w")].map(
+					m => ["", "'", "2"].map(a => m + a)
+				)),
+			].filter(w => w.slice(0, word.length) === word).map(w => "<span class='highlight'>" + word + "</span>" + w.slice(word.length));
+
+		})().join("\t"));
 	}
 
 	function updateRotations(){
