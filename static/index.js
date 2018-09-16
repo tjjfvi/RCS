@@ -11,6 +11,7 @@ $(() => {
 		ra: () => interpretAlgorithm("L U2 L' U2 L F' L' U' L U L F L2 U"),
 		pause: () => interpretAlgorithm("     "),
 		solve,
+		solveSlow: () => solve(false),
 		scramble: () => interpretAlgorithm(genScramble()).map(t => ({...t, insta: true})),
 	};
 
@@ -421,20 +422,17 @@ $(() => {
 			:
 				findFace(...rotate(faces[f].axis, faces[f].dir * amount))
 		).join("");
-		console.log(key);
 		if(modify) pieces[key.split("").sort().join("")].userData.key = rotKey;
 		return rotKey.split("").sort().join("");
 	}
 
 	function genScramble(){
-		// let turns = [..."RUFLBDxyzMES".split(""), ..."RUFLBD".split("").map(s => s + "w")];
-		let turns = "RUFLBD".split("");
+		let turns = [..."RUFLBDxyzMES".split(""), ..."RUFLBD".split("").map(s => s + "w")];
 		let directions = " 2 '".split(" ");
 		let scramble = [...Array(25)].map(() =>
 			turns[Math.floor(Math.random() * turns.length)] +
 			directions[Math.floor(Math.random() * directions.length)]
 		).join(" ");
-		console.log(scramble);
 		return scramble;
 	}
 
@@ -443,7 +441,6 @@ $(() => {
 	}
 
 	function findRotation(faceKey, key, goalKey){
-		console.log(faceKey, key, goalKey)
 		let rot = {
 			faceKey,
 			amount: [0, 1, -1, 2].filter(a => rotatePieceKey(key, faceKey, a, false) === goalKey)[0],
@@ -453,7 +450,6 @@ $(() => {
 
 	function rotateMovesY(moves, from, to){
 		let { amount } = findRotation("u", from, to);
-		console.log(amount, from, to);
 		return moves.map(m => {
 			let f = m => {
 				m.faceKey = rotatePieceKey(m.faceKey, "u", amount, false);
@@ -464,7 +460,9 @@ $(() => {
 		});
 	}
 
-	function solve(){
+	function solve(insta = true){
+		let rotateInsta = obj => rotate({ ...obj, insta });
+
 		["d", "f"].map(k => {
 			let piece = findPiece(k);
 			let { axis, dir } = faces[piece.userData.key];
@@ -476,8 +474,9 @@ $(() => {
 			let rotAxis = _.xor([1, 0, 2], [axis, goalAxis])[0];
 			let faceKey = findFace(rotAxis, 1);
 
-			rotate({ cube: findRotation(faceKey, piece.userData.key, k) });
+			rotateInsta({ cube: findRotation(faceKey, piece.userData.key, k) });
 		});
+
 		edgeKeys.filter(k => k.includes("d")).filter(k => {
 			const piece = findPiece(k);
 			let { key, originalPiece } = piece.userData;
@@ -485,7 +484,7 @@ $(() => {
 
 			if(key === originalPiece) return;
 			if(key.split("").reverse().join("") === originalPiece)
-				return genFlip().map(rotate);
+				return genFlip().map(rotateInsta);
 
 			let coloredPos = key[originalPiece.indexOf(otherFaceKey)];
 			let flip = false;
@@ -496,21 +495,21 @@ $(() => {
 			}
 
 			if(coloredPos === otherFaceKey) {
-				rotate({ face: findRotation(otherFaceKey, key, originalPiece) });
-				if(flip) genFlip().map(rotate);
+				rotateInsta({ face: findRotation(otherFaceKey, key, originalPiece) });
+				if(flip) genFlip().map(rotateInsta);
 			}
 
 			let newKey = [coloredPos, "u"].sort().join("");
 			let rot = findRotation(coloredPos, key, newKey);
-			if(rot.amount) rotate({ face: rot });
+			if(rot.amount) rotateInsta({ face: rot });
 
-			rotate({ face: findRotation("u", newKey, [otherFaceKey, "u"].sort().join("")) });
+			rotateInsta({ face: findRotation("u", newKey, [otherFaceKey, "u"].sort().join("")) });
 
-			rotate({ face: { faceKey: rot.faceKey, amount: -rot.amount }})
+			rotateInsta({ face: { faceKey: rot.faceKey, amount: -rot.amount }})
 
-			if(piece.userData.key !== k) rotate({ face: { faceKey: otherFaceKey, amount: 2 } });
+			if(piece.userData.key !== k) rotateInsta({ face: { faceKey: otherFaceKey, amount: 2 } });
 
-			if(flip) genFlip().map(rotate);
+			if(flip) genFlip().map(rotateInsta);
 
 			return true;
 
@@ -534,7 +533,7 @@ $(() => {
 				let fs = key.split("").filter(k => k !== "d").reverse();
 				let algorithm = findRotation("u", ...fs).amount === -1 ? "R U R'" : "L' U' L";
 				let moves = interpretAlgorithm(algorithm);
-				rotateMovesY(moves, "f", fs[0]).map(rotate);
+				rotateMovesY(moves, "f", fs[0]).map(rotateInsta);
 				({ key, originalPiece } = piece.userData);
 			}
 
@@ -542,7 +541,7 @@ $(() => {
 			let sideFaces = originalPiece.split("").filter((_, i) => i !== key.indexOf("u"));
 			let possibleFaces = _.intersection(sideFaces, otherFaces);
 
-			rotate({ face: findRotation("u", key, otherFaces.concat("u").sort().join("")) });
+			rotateInsta({ face: findRotation("u", key, otherFaces.concat("u").sort().join("")) });
 
 			({ key, originalPiece } = piece.userData);
 
@@ -557,7 +556,7 @@ $(() => {
 
 			let algorithm = algorithms[ind];
 
-			rotateMovesY(interpretAlgorithm(algorithm), ind ? "f" : "f", possibleFaces[0]).map(rotate);
+			rotateMovesY(interpretAlgorithm(algorithm), ind ? "f" : "f", possibleFaces[0]).map(rotateInsta);
 
 			return true;
 		});
@@ -579,7 +578,7 @@ $(() => {
 				let fs = key.split("").reverse();
 				let algorithm = algorithms[findRotation("u", ...fs).amount === -1 ? 0 : 1];
 				let moves = interpretAlgorithm(algorithm);
-				rotateMovesY(moves, "f", fs[0]).map(rotate);
+				rotateMovesY(moves, "f", fs[0]).map(rotateInsta);
 				({ key } = piece.userData);
 			}
 
@@ -587,7 +586,7 @@ $(() => {
 			let sideFace = originalPiece[+!key.indexOf("u")];
 			let topOppositeFace = findFace(faces[topFace].axis, -faces[topFace].dir);
 
-			rotate({ face: findRotation("u", key, ["u", topOppositeFace].sort().join("")) });
+			rotateInsta({ face: findRotation("u", key, ["u", topOppositeFace].sort().join("")) });
 
 			({ key } = piece.userData);
 
@@ -595,7 +594,7 @@ $(() => {
 
 			let algorithm = algorithms[ind];
 
-			rotateMovesY(interpretAlgorithm(algorithm), "f", sideFace).map(rotate);
+			rotateMovesY(interpretAlgorithm(algorithm), "f", sideFace).map(rotateInsta);
 
 			return true;
 		});
@@ -622,7 +621,7 @@ $(() => {
 
 			let amount = [0, 1, 2, -1][r];
 
-			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotate);
+			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotateInsta);
 
 		})();
 
@@ -651,15 +650,70 @@ $(() => {
 			for(r = 0; (algorithm = algorithms[twists.join("")]) === undefined; r++) {
 				twists.unshift(twists.pop());
 				twists = twists.map(t => rotatePieceKey(t, "u", 1, false));
-				console.log(twists.join(""))
 				if(r > 5) throw "";
 			}
 
 			let amount = [0, 1, 2, -1][r];
 
-			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotate);
+			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotateInsta);
 
 		})();
+
+		(() => {
+
+			let algorithm = "R' F R' B2 R F' R' B2 R2 U";
+
+			let matchingSides = centerKeys.filter(inMiddleLayer).filter(f => {
+				let findOriginal = a => {
+					let { key, originalPiece } = pieces[[rotatePieceKey(f, "u", a, false), f, "u"].sort().join("")].userData;
+					return originalPiece[key.indexOf(f)];
+				}
+
+				return findOriginal(1) === findOriginal(-1);
+			});
+
+			switch(matchingSides.length){
+				case 0:
+					let moves = interpretAlgorithm(algorithm);
+					moves.map(rotateInsta);
+					moves.map(rotateInsta);
+					break;
+
+				case 1:
+					rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0]).map(rotateInsta)
+					break;
+
+				case 4: break;
+			}
+
+			let { key, originalPiece } = findPiece(cornerKeys.filter(k => k.includes("u"))[0]).userData;
+
+			rotateInsta({ face: findRotation("u", key.split("").sort().join(""), originalPiece) });
+
+		})();
+
+		let permuteLastEdges = () => {
+
+			let algorithm = "F2 U M' U2 M U F2";
+
+			let matchingSides = centerKeys.filter(inMiddleLayer).filter(f => {
+				let key = ["u", f].sort().join("");
+				return pieces[key].userData.originalPiece === key;
+			});
+
+			switch(matchingSides.length){
+				case 0:
+				case 1:
+					rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0] || "b").map(rotateInsta);
+					permuteLastEdges();
+					break;
+
+				case 4: break;
+			}
+
+		};
+
+		permuteLastEdges();
 
 		return [];
 	}
