@@ -138,7 +138,12 @@ $(() => {
 		let history = JSON.parse(localStorage.history || "[]");
 		let historyInd = -1;
 
-		$(".algorithm").keyup(function(e){
+		$(".algorithm").keydown(handler);
+		$(".algorithm").keyup(handler);
+
+		updateSuggestions();
+
+		function handler(e){
 			switch(e.key){
 				case "Enter":
 					let val = $(this).val();
@@ -180,17 +185,20 @@ $(() => {
 					$(this).val(history[historyInd]);
 
 					break;
+
+				case "Tab":
+					updateSuggestions(true);
+					e.preventDefault();
 			}
 			updateSuggestions();
-		});
-		updateSuggestions();
+		};
 	}
 
-	function updateSuggestions(){
+	function updateSuggestions(complete){
 		let text = $(".algorithm").val();
 		let word = text.split(" ").reverse()[0];
 
-		$(".suggestions").html((() => {
+		let suggestions = (() => {
 
 			if(!word) return ["<b>:</b>", ..."~LRUDFBxyzMES".split("")];
 
@@ -202,7 +210,19 @@ $(() => {
 				)),
 			].filter(w => w.slice(0, word.length) === word).map(w => "<span class='highlight'>" + word + "</span>" + w.slice(word.length));
 
-		})().join("\t"));
+		})();
+
+		$(".suggestions").html(suggestions.join("&#9;"));
+
+		if(complete) {
+			let newText = _.intersection(...suggestions
+				.map(s => $("<span>").html(s).text())
+				.map(s => s.split("").map((c, i) => c + i))
+			).filter((s, i) => +s.slice(1) === i).map(s => s[0]).join("");
+
+			$(".algorithm").val([...text.split(" ").slice(0, -1), newText].join(" "));
+		}
+
 	}
 
 	function updateRotations(){
