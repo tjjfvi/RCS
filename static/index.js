@@ -600,6 +600,67 @@ $(() => {
 			return true;
 		});
 
+		(() => {
+
+			let algorithms = {
+				ffff: "F U R U' R' F' U F U R U' R' U R U' R' F' U'",
+				tftf: "F U R U' R' U R U' R' F'",
+				ttff: "F U R U' R' F'",
+				tttt: "",
+			};
+
+			let flips = ["lu", "bu", "ru", "fu"].map(k => k.split("").sort().join("")).map(k =>
+				pieces[k].userData.originalPiece[pieces[k].userData.key.indexOf("u")] === "u"
+			);
+
+			let algorithm, r;
+
+			let stringifyFlips = f => f.map(b => b? "t" : "f").join("")
+
+			for(r = 0; (algorithm = algorithms[stringifyFlips(flips)]) === undefined; r++)
+				flips.unshift(flips.pop());
+
+			let amount = [0, 1, 2, -1][r];
+
+			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotate);
+
+		})();
+
+		(() => {
+
+			let rAl = "R U R' U R U2 R'";
+			let lAl = "L' U' L U' L' U2 L";
+
+			let algorithms = {
+				uuuu: ``,
+				ubrf: `${rAl}`,
+				flbu: `${lAl}`,
+				llrr: `${rAl} ${rAl}`,
+				fbuu: `${rAl} ${lAl}`,
+				lbbr: `${rAl} U ${rAl}`,
+				furu: `${rAl} U' ${lAl}`,
+				fuuf: `${rAl} U2 ${lAl}`,
+			};
+
+			let twists = ["lfu", "blu", "rbu", "fru"].map(k => k.split("").sort().join("")).map(k =>
+				pieces[k].userData.key[pieces[k].userData.originalPiece.indexOf("u")]
+			);
+
+			let algorithm, r;
+
+			for(r = 0; (algorithm = algorithms[twists.join("")]) === undefined; r++) {
+				twists.unshift(twists.pop());
+				twists = twists.map(t => rotatePieceKey(t, "u", 1, false));
+				console.log(twists.join(""))
+				if(r > 5) throw "";
+			}
+
+			let amount = [0, 1, 2, -1][r];
+
+			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotate);
+
+		})();
+
 		return [];
 	}
 })
