@@ -33,7 +33,7 @@ $(() => {
 		Date.delta = now - lastTime;
 	}
 
-	const moveRegex = /^(?:([FBLRUD])(w?)|([xyzXYZ])|([MES]))(['2]?)$/;
+	const moveRegex = /^(?:([FBLRUD])(w?)|([xyzXYZ])|([MES]))('?2?)$/;
 
 	const faces = {
 		f: { color: 0xd35400, name: "Front", axis: 2, dir:  1 },
@@ -198,7 +198,7 @@ $(() => {
 				...Object.keys(commands).map(c => ":" + c),
 				...Object.keys(presetAlgorithms).map(a => "~" + a),
 				...[].concat(...[..."RUFLBDxyzMES".split(""), ..."RUFLBD".split("").map(s => s + "w")].map(
-					m => ["", "'", "2"].map(a => m + a)
+					m => ["", "'", "2", "'2"].map(a => m + a)
 				)),
 			].filter(w => w.slice(0, word.length) === word).map(w => "<span class='highlight'>" + word + "</span>" + w.slice(word.length));
 
@@ -411,6 +411,7 @@ $(() => {
 				"":    1,
 				"'":  -1,
 				"2":   2,
+				"'2": -2,
 			}[m[5]];
 
 			if(m[1]) {
