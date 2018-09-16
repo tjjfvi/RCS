@@ -138,6 +138,10 @@ $(() => {
 		let history = JSON.parse(localStorage.history || "[]");
 		let historyInd = -1;
 
+
+		$("canvas").click(() => $(".helpScreen").removeClass("show"))
+		$(".help").click(() => $(".helpScreen").addClass("show") && false);
+
 		$(".algorithm").keydown(handler);
 		$(".algorithm").keyup(handler);
 
