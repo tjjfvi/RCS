@@ -554,20 +554,48 @@ $(() => {
 			let algorithms = algorithmss[key[originalPiece.indexOf("d")] === "u" ? 1 : 0];
 
 			let ind = findRotation("u", possibleFaces[0], possibleFaces[1] || key[originalPiece.indexOf("d")]).amount === 1 ? 1 : 0;
-			console.log(possibleFaces[0], possibleFaces[1] || key[originalPiece.indexOf("d")], ind);
-
-			console.log();
 
 			let algorithm = algorithms[ind];
 
-			console.log(sideFaces);
-
-
-			console.log(possibleFaces);
-
 			rotateMovesY(interpretAlgorithm(algorithm), ind ? "f" : "f", possibleFaces[0]).map(rotate);
 
-			console.log("hi");
+			return true;
+		});
+
+		let inMiddleLayer = k => !k.includes("u") && !k.includes("d");
+
+		edgeKeys.filter(inMiddleLayer).map(k => {
+			const piece = findPiece(k);
+			let { key, originalPiece } = piece.userData;
+
+			let algorithms = [
+				"R U R' U' F' U' F",
+				"L' U' L U F U F'",
+			];
+
+			if(key === originalPiece) return;
+
+			if(inMiddleLayer(key)) {
+				let fs = key.split("").reverse();
+				let algorithm = algorithms[findRotation("u", ...fs).amount === -1 ? 0 : 1];
+				let moves = interpretAlgorithm(algorithm);
+				rotateMovesY(moves, "f", fs[0]).map(rotate);
+				({ key } = piece.userData);
+			}
+
+			let topFace = originalPiece[key.indexOf("u")];
+			let sideFace = originalPiece[+!key.indexOf("u")];
+			let topOppositeFace = findFace(faces[topFace].axis, -faces[topFace].dir);
+
+			rotate({ face: findRotation("u", key, ["u", topOppositeFace].sort().join("")) });
+
+			({ key } = piece.userData);
+
+			let ind = findRotation("u", sideFace, topOppositeFace).amount === 1 ? 0 : 1;
+
+			let algorithm = algorithms[ind];
+
+			rotateMovesY(interpretAlgorithm(algorithm), "f", sideFace).map(rotate);
 
 			return true;
 		});
