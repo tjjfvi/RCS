@@ -36,10 +36,10 @@ $(() => {
 	const moveRegex = /^(?:([FBLRUD])(w?)|([xyzXYZ])|([MES]))('?2?)$/;
 
 	const faces = {
-		f: { color: 0xd35400, name: "Front", axis: 2, dir:  1 },
-		b: { color: 0xc0392b, name:  "Back", axis: 2, dir: -1 },
-		l: { color: 0x27ae60, name:  "Left", axis: 0, dir: -1 },
-		r: { color: 0x2980b9, name: "Right", axis: 0, dir:  1 },
+		f: { color: 0x0984e3, name: "Front", axis: 2, dir:  1 },
+		b: { color: 0x27ae60, name:  "Back", axis: 2, dir: -1 },
+		l: { color: 0xd35400, name:  "Left", axis: 0, dir: -1 },
+		r: { color: 0xc0392b, name: "Right", axis: 0, dir:  1 },
 		u: { color: 0xf1c40f, name:    "Up", axis: 1, dir:  1 },
 		d: { color: 0xecf0f1, name:  "Down", axis: 1, dir: -1 },
 	};
@@ -77,6 +77,8 @@ $(() => {
 	const camera = new t.PerspectiveCamera(60, window.innerWidth / window.innerHeight, .1, 1000);
 	const renderer = new t.WebGLRenderer({ antialias: true });
 
+	camera.position.z += 5;
+
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = t.PCFShadowMap;
 	renderer.setSize(window.innerWidth, window.innerHeight);
@@ -85,13 +87,27 @@ $(() => {
 	const cube = new t.Group();
 	cube.name = "Cube";
 
-	const light = new t.DirectionalLight(0xffffff, 1);
+	const lights = [
+		[new t.Vector3(0,  5, -1),  .75],
+		[new t.Vector3(7,  0, -1), .75],
+		[new t.Vector3(0,  0,  5),   2],
+		[new t.Vector3(0,  0, -5), 1.5],
+		[new t.Vector3(0,  0, -2), .25],
+	].map(([position, intensity]) => {
 
-	light.castShadow = true;
-	light.shadow = new t.LightShadow(new t.PerspectiveCamera(50, 1, 10, 2500));
-	light.shadow.bias = 0.0001;
-	light.shadow.mapSize.width = 2048;
-	light.shadow.mapSize.width = 1024;
+		let light = new t.PointLight(0xffffff, intensity);
+
+		light.castShadow = true;
+		light.shadow = new t.LightShadow(new t.PerspectiveCamera(50, 1, 10, 2500));
+		light.shadow.bias = 0.0001;
+		light.shadow.mapSize.width = 2048;
+		light.shadow.mapSize.width = 1024;
+
+		light.position.copy(position);
+
+		return light;
+
+	});
 
 	const faceRotateGroup = new t.Group();
 	faceRotateGroup.name = "Rotate Group";
@@ -109,11 +125,10 @@ $(() => {
 
 	cubeViewGroup.add(cubeRotateGroup);
 
-	scene.add(cubeViewGroup, light, new t.AmbientLight(0xaaaaaa));
+	scene.add(cubeViewGroup, ...lights, new t.AmbientLight(0xffffff, 0));
 
 	scene.background = new t.Color(0x151820);
 
-	camera.position.z += 5;
 
 	pieceKeys.map(createCubelet);
 
