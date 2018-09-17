@@ -36,10 +36,10 @@ $(() => {
 	const moveRegex = /^(?:([FBLRUD])(w?)|([xyzXYZ])|([MES]))('?2?)$/;
 
 	const faces = {
-		f: { color: 0xd35400, name: "Front", axis: 2, dir:  1 },
-		b: { color: 0xc0392b, name:  "Back", axis: 2, dir: -1 },
-		l: { color: 0x27ae60, name:  "Left", axis: 0, dir: -1 },
-		r: { color: 0x2980b9, name: "Right", axis: 0, dir:  1 },
+		f: { color: 0x2980b9, name: "Front", axis: 2, dir:  1 },
+		b: { color: 0x27ae60, name:  "Back", axis: 2, dir: -1 },
+		l: { color: 0xd35400, name:  "Left", axis: 0, dir: -1 },
+		r: { color: 0xc0392b, name: "Right", axis: 0, dir:  1 },
 		u: { color: 0xf1c40f, name:    "Up", axis: 1, dir:  1 },
 		d: { color: 0xecf0f1, name:  "Down", axis: 1, dir: -1 },
 	};

@@ -6,8 +6,6 @@ const router = express.Router();
 const path = require("path");
 
 router.use(express.static(__dirname + "/static"));
-console.log(__dirname + "static");
-
 
 if(require.main === module) {
 	server.use(router);
