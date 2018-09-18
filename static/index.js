@@ -214,8 +214,15 @@ $(() => {
 	}
 
 	function updateSuggestions(complete){
+		let $input = $(".algorithm");
+
+		if($input[0].selectionStart !== $input[0].selectionEnd)
+			return $(".suggestions").text("");
+
+		let start = $input[0].selectionStart;
+
 		let text = $(".algorithm").val();
-		let word = text.split(" ").reverse()[0];
+		let word = text.slice(0, start).split(" ").reverse()[0];
 
 		let suggestions = (() => {
 
@@ -233,13 +240,18 @@ $(() => {
 
 		$(".suggestions").html(suggestions.join("&#9;"));
 
-		if(complete) {
+		if(complete && suggestions.length) {
+
 			let newText = _.intersection(...suggestions
 				.map(s => $("<span>").html(s).text())
 				.map(s => s.split("").map((c, i) => c + i))
 			).filter((s, i) => +s.slice(1) === i).map(s => s[0]).join("");
 
-			$(".algorithm").val([...text.split(" ").slice(0, -1), newText].join(" "));
+			if(suggestions.length === 1) newText += " ";
+
+			$input.val([...text.slice(0, start).split(" ").slice(0, -1), newText + (start === text.length ? "" : text.slice(start))].join(" "));
+			$input[0].selectionStart = $input[0].selectionEnd = start + newText.length - word.length;
+
 		}
 
 	}
