@@ -5,9 +5,7 @@ $(() => {
 
 	const commands = {
 		solve,
-		solveSlow: () => solve(false),
-		scramble: () => interpretAlgorithm(genScramble()).map(t => ({...t, insta: true})).map(rotate),
-		scrambleSlow: () => interpretAlgorithm(genScramble()).map(rotate),
+		scramble: () => interpretAlgorithm(genScramble()).map(rotate),
 		insta: () => [
 			faceRotation,
 			cubeRotation,
@@ -552,9 +550,7 @@ $(() => {
 		});
 	}
 
-	function solve(insta = true){
-		let rotateInsta = obj => rotate({ ...obj, insta });
-
+	function solve(){
 		["d", "f"].map(k => {
 			let piece = findPiece(k);
 			let { axis, dir } = faces[piece.userData.key];
@@ -566,7 +562,7 @@ $(() => {
 			let rotAxis = _.xor([1, 0, 2], [axis, goalAxis])[0];
 			let faceKey = findFace(rotAxis, 1);
 
-			rotateInsta({ cube: findRotation(faceKey, piece.userData.key, k) });
+			rotate({ cube: findRotation(faceKey, piece.userData.key, k) });
 		});
 
 		edgeKeys.filter(k => k.includes("d")).filter(k => {
@@ -576,7 +572,7 @@ $(() => {
 
 			if(key === originalPiece) return;
 			if(key.split("").reverse().join("") === originalPiece)
-				return genFlip().map(rotateInsta);
+				return genFlip().map(rotate);
 
 			let coloredPos = key[originalPiece.indexOf(otherFaceKey)];
 			let flip = false;
@@ -587,21 +583,21 @@ $(() => {
 			}
 
 			if(coloredPos === otherFaceKey) {
-				rotateInsta({ face: findRotation(otherFaceKey, key, originalPiece) });
-				if(flip) genFlip().map(rotateInsta);
+				rotate({ face: findRotation(otherFaceKey, key, originalPiece) });
+				if(flip) genFlip().map(rotate);
 			}
 
 			let newKey = [coloredPos, "u"].sort().join("");
 			let rot = findRotation(coloredPos, key, newKey);
-			if(rot.amount) rotateInsta({ face: rot });
+			if(rot.amount) rotate({ face: rot });
 
-			rotateInsta({ face: findRotation("u", newKey, [otherFaceKey, "u"].sort().join("")) });
+			rotate({ face: findRotation("u", newKey, [otherFaceKey, "u"].sort().join("")) });
 
-			rotateInsta({ face: { faceKey: rot.faceKey, amount: -rot.amount }})
+			rotate({ face: { faceKey: rot.faceKey, amount: -rot.amount }})
 
-			if(piece.userData.key !== k) rotateInsta({ face: { faceKey: otherFaceKey, amount: 2 } });
+			if(piece.userData.key !== k) rotate({ face: { faceKey: otherFaceKey, amount: 2 } });
 
-			if(flip) genFlip().map(rotateInsta);
+			if(flip) genFlip().map(rotate);
 
 			return true;
 
@@ -625,7 +621,7 @@ $(() => {
 				let fs = key.split("").filter(k => k !== "d").reverse();
 				let algorithm = findRotation("u", ...fs).amount === -1 ? "R U R'" : "L' U' L";
 				let moves = interpretAlgorithm(algorithm);
-				rotateMovesY(moves, "f", fs[0]).map(rotateInsta);
+				rotateMovesY(moves, "f", fs[0]).map(rotate);
 				({ key, originalPiece } = piece.userData);
 			}
 
@@ -633,7 +629,7 @@ $(() => {
 			let sideFaces = originalPiece.split("").filter((_, i) => i !== key.indexOf("u"));
 			let possibleFaces = _.intersection(sideFaces, otherFaces);
 
-			rotateInsta({ face: findRotation("u", key, otherFaces.concat("u").sort().join("")) });
+			rotate({ face: findRotation("u", key, otherFaces.concat("u").sort().join("")) });
 
 			({ key, originalPiece } = piece.userData);
 
@@ -648,7 +644,7 @@ $(() => {
 
 			let algorithm = algorithms[ind];
 
-			rotateMovesY(interpretAlgorithm(algorithm), ind ? "f" : "f", possibleFaces[0]).map(rotateInsta);
+			rotateMovesY(interpretAlgorithm(algorithm), ind ? "f" : "f", possibleFaces[0]).map(rotate);
 
 			return true;
 		});
@@ -670,7 +666,7 @@ $(() => {
 				let fs = key.split("").reverse();
 				let algorithm = algorithms[findRotation("u", ...fs).amount === -1 ? 0 : 1];
 				let moves = interpretAlgorithm(algorithm);
-				rotateMovesY(moves, "f", fs[0]).map(rotateInsta);
+				rotateMovesY(moves, "f", fs[0]).map(rotate);
 				({ key } = piece.userData);
 			}
 
@@ -678,7 +674,7 @@ $(() => {
 			let sideFace = originalPiece[+!key.indexOf("u")];
 			let topOppositeFace = findFace(faces[topFace].axis, -faces[topFace].dir);
 
-			rotateInsta({ face: findRotation("u", key, ["u", topOppositeFace].sort().join("")) });
+			rotate({ face: findRotation("u", key, ["u", topOppositeFace].sort().join("")) });
 
 			({ key } = piece.userData);
 
@@ -686,7 +682,7 @@ $(() => {
 
 			let algorithm = algorithms[ind];
 
-			rotateMovesY(interpretAlgorithm(algorithm), "f", sideFace).map(rotateInsta);
+			rotateMovesY(interpretAlgorithm(algorithm), "f", sideFace).map(rotate);
 
 			return true;
 		});
@@ -713,7 +709,7 @@ $(() => {
 
 			let amount = [0, 1, 2, -1][r];
 
-			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotateInsta);
+			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotate);
 
 		})();
 
@@ -747,7 +743,7 @@ $(() => {
 
 			let amount = [0, 1, 2, -1][r];
 
-			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotateInsta);
+			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotate);
 
 		})();
 
@@ -767,12 +763,12 @@ $(() => {
 			switch(matchingSides.length){
 				case 0:
 					let moves = interpretAlgorithm(algorithm);
-					moves.map(rotateInsta);
-					moves.map(rotateInsta);
+					moves.map(rotate);
+					moves.map(rotate);
 					break;
 
 				case 1:
-					rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0]).map(rotateInsta)
+					rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0]).map(rotate)
 					break;
 
 				case 4: break;
@@ -780,7 +776,7 @@ $(() => {
 
 			let { key, originalPiece } = findPiece(cornerKeys.filter(k => k.includes("u"))[0]).userData;
 
-			rotateInsta({ face: findRotation("u", key.split("").sort().join(""), originalPiece) });
+			rotate({ face: findRotation("u", key.split("").sort().join(""), originalPiece) });
 
 		})();
 
@@ -796,7 +792,7 @@ $(() => {
 			switch(matchingSides.length){
 				case 0:
 				case 1:
-					rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0] || "b").map(rotateInsta);
+					rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0] || "b").map(rotate);
 					permuteLastEdges();
 					break;
 
