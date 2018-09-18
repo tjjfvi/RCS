@@ -14,6 +14,12 @@ $(() => {
 			...faceRotationQueue,
 			...cubeRotationQueue
 		].map(r => r && (r.insta = true)),
+		slow: () => [
+			faceRotation,
+			cubeRotation,
+			...faceRotationQueue,
+			...cubeRotationQueue
+		].map(r => r && (r.insta = false)),
 	};
 
 	const presetAlgorithms = {
