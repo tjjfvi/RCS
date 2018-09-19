@@ -146,6 +146,8 @@ $(() => {
 
 	render();
 
+	$(".helpScreen").overlayScrollbars({ className: "os-theme-light" });
+
 	setupListeners();
 
 	function render(){

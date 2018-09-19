@@ -42,23 +42,30 @@ body, html {
 
 .helpScreen {
 	display: inline-block;
-	width: 95vw;
-	max-width: 95vh;
-	height: 90vw;
-	max-height: 90vh;
+	width: 100%;
+	height: 100%;
 	background: #151820;
 	position: absolute;
 	border: 7.5px solid #252830;
 	border-radius: 50px;
-	position: absolute;
-	top: 50%;
-	left: 50%;
 	padding: 5px;
 	opacity: 0;
-	transform: translate(-50%, -50%);
 	transition: opacity .2s;
 	pointer-events: none;
 	overflow: auto;
+}
+
+.helpScreenWrapper {
+	display: inline-block;
+	width: 95vw;
+	max-width: 95vh;
+	height: 90vw;
+	max-height: 90vh;
+	position: absolute;
+	top: 50vh;
+	left: 50vw;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
 }
 
 .helpScreen.show {
@@ -66,17 +73,17 @@ body, html {
 	pointer-events: all;
 }
 
-.helpScreen > * {
+.helpScreen .os-content > * {
 	padding-left: calc(50% - 20em);
 	padding-right: calc(50% - 20em);
 	color: white;
 }
 
-.helpScreen p {
+.helpScreen .os-content p {
 	text-align: justify;
 }
 
-.helpScreen p:before {
+.helpScreen .os-content p:before {
 	white-space: pre;
 	/* content: "          " */
 }

@@ -5,9 +5,11 @@
 		<title>Rubik's Cube Simulator</title>
 
 		<link rel="stylesheet" href="index.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.5.2/css/OverlayScrollbars.css">
 
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.5.2/js/jquery.overlayScrollbars.js"></script>
 		<script src="three.min.js"></script>
 
 		<script src="index.js"></script>
@@ -16,7 +18,7 @@
 		<input class="algorithm" autofocus></input>
 		<span class="suggestions"></span>
 		<div class="help"></div>
-		<div class="helpScreen">
+		<div class="helpScreenWrapper"><div class="helpScreen">
 			<h1>Help</h1>
 			<p>
 				To use, enter moves, commands, and/or algorithm shortcuts into the input field.
@@ -66,6 +68,6 @@
 				<br><br>
 				As you type into the input field, it will automatically make suggestions.
 			</p>
-		</div>
+		</div></div>
 	</body>
 </html>
