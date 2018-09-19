@@ -169,59 +169,70 @@ $(() => {
 		$("canvas").click(() => $(".helpScreen").removeClass("show"))
 		$(".help").click(() => $(".helpScreen").addClass("show") && false);
 
-		$(".algorithm").keydown(handler);
-		$(".algorithm").keyup(handler);
+		$(".algorithm")
+			.keydown(handler(true))
+			.keyup(handler(false))
+		;
 
 		updateSuggestions();
 
-		function handler(e){
-			switch(e.key){
-				case "Enter":
-					let val = $(this).val();
+		function handler(down){
+			return function(e){
+				switch(e.key){
+					case "Enter":
+						if(down) break;
 
-					let reverse = turns => (e.shiftKey ? turns.reverse().map(t => {
-						if(t.face) t.face.amount *= -1;
-						if(t.cube) t.cube.amount *= -1;
-						return t;
-					}) : turns);
+						let val = $(this).val();
 
-					let turns = interpretAlgorithm(val);
+						if(!val) return;
 
-					console.log(reverse(turns));
+						let reverse = turns => (e.shiftKey ? turns.reverse().map(t => {
+							if(t.face) t.face.amount *= -1;
+							if(t.cube) t.cube.amount *= -1;
+							return t;
+						}) : turns);
 
-					turns.map(turn => {
-						if(!turn.orig) return rotate(turn);
+						let turns = interpretAlgorithm(val);
 
-						if(turn.orig[0] === "~")
-							return reverse(interpretAlgorithm(presetAlgorithms[turn.orig.slice(1)] || "")).map(rotate);
+						turns.map(turn => {
+							if(!turn.orig) return rotate(turn);
 
-						if(turn.orig[0] === ":") return (commands[turn.orig.slice(1)] || (() => []))();
-					});
+							if(turn.orig[0] === "~")
+								return reverse(interpretAlgorithm(presetAlgorithms[turn.orig.slice(1)] || "")).map(rotate);
 
-					history.unshift(val);
-					historyInd = -1;
+							if(turn.orig[0] === ":") return (commands[turn.orig.slice(1)] || (() => []))();
+						});
 
-					$(this).val("");
+						history.unshift(val);
+						historyInd = -1;
 
-					localStorage.history = JSON.stringify(history);
+						history.splice(25, 100)
 
-					break;
+						$(this).val("");
 
-				case "ArrowUp":
-				case "ArrowDown":
-					let newInd = historyInd + (e.key === "ArrowUp" ? 1 : -1);
-					if(!history[newInd]) return;
+						localStorage.history = JSON.stringify(history);
 
-					historyInd = newInd;
-					$(this).val(history[historyInd]);
+						break;
 
-					break;
+					case "ArrowUp":
+					case "ArrowDown":
+						if(!down) break;
 
-				case "Tab":
-					updateSuggestions(true);
-					e.preventDefault();
+						let newInd = historyInd + (e.key === "ArrowUp" ? 1 : -1);
+
+						if(newInd !== -1 && history[newInd] === undefined) break;
+
+						historyInd = newInd;
+						$(this).val(history[historyInd] || "");
+
+						break;
+
+					case "Tab":
+						updateSuggestions(true);
+						e.preventDefault();
+				}
+				updateSuggestions();
 			}
-			updateSuggestions();
 		};
 	}
 
@@ -267,8 +278,6 @@ $(() => {
 			;
 
 		})();
-
-		console.log(suggestions.join("&#9;"));
 
 		$(".suggestions").html(suggestions.join("    "));
 
