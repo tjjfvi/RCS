@@ -24,7 +24,7 @@
 				It follows the same notation as listed <a href="https://ruwix.com/the-rubiks-cube/notation/advanced/">here</a>,
 				with the small exception of <code>Rw</code> instead of <code>r</code> for wide turns.
 				Each move is represented by one (or two) letters, then either nothing (turn it clockwise), a <code>'</code> (turn it counterclockwise),
-				or a <code>2</code> (turn it 180 degrees) (or, rarely, '2, also turn it 180 degrees). The letters are:
+				or a <code>2</code> (turn it 180 degrees) (or, rarely, <code>'2</code>, also turn it 180 degrees). The letters are:
 				<br> &nbsp; &nbsp; <code>R</code> Right
 				<br> &nbsp; &nbsp; <code>L</code> Left
 				<br> &nbsp; &nbsp; <code>U</code> Up
@@ -32,23 +32,30 @@
 				<br> &nbsp; &nbsp; <code>F</code> Front
 				<br> &nbsp; &nbsp; <code>B</code> Back
 				<br> &nbsp; &nbsp; <code>Rw</code> Right wide (Turn R, but grip two layers in)
-				<br> &nbsp; &nbsp; <code>Lw</code> Left wide (Turn R, but grip two layers in)
+				<br> &nbsp; &nbsp; <code>Lw</code> Left wide (Turn L, but grip two layers in)
 				<br> &nbsp; &nbsp; <code>...</code>
 				<br> &nbsp; &nbsp; <code>M</code> Middle (Between L and R)
 				<br> &nbsp; &nbsp; <code>E</code> Equator (Between U and D)
 				<br> &nbsp; &nbsp; <code>S</code> Standing (Between F and B)
 				<br> &nbsp; &nbsp; <code>x</code> Rotate whole cube on R
-				<br> &nbsp; &nbsp; <code>y</code> Rotate whole cube on
-				<br> &nbsp; &nbsp; <code>z</code> Rotate whole cube on R
+				<br> &nbsp; &nbsp; <code>y</code> Rotate whole cube on U
+				<br> &nbsp; &nbsp; <code>z</code> Rotate whole cube on F
 
 
 				<br><br>
 				The commands are as follows:
-				<br> &nbsp; &nbsp; <code>:solve</code> Quickly solves the cube.
-				<br> &nbsp; &nbsp; <code>:solveSlow</code> Slowly solves the cube.
-				<br> &nbsp; &nbsp; <code>:scramble</code> Quickly scrambles the cube.
-				<br> &nbsp; &nbsp; <code>:scrambleSlow</code> Slowly scrambles the cube.
 				<br> &nbsp; &nbsp; <code>:insta</code> Speeds up all turns in queue.
+				<br> &nbsp; &nbsp; <code>:slow</code> Slows all turns in queue.
+				<br> &nbsp; &nbsp; <code>:scramble</code> Slowly scrambles the cube.
+				<br> &nbsp; &nbsp; <code>:solve</code> Slowly solves the cube.
+				<br> &nbsp; &nbsp; <code>:solveWhiteCross</code> Solving step 1
+				<br> &nbsp; &nbsp; <code>:solveWhiteFace</code> Solving step 2
+				<br> &nbsp; &nbsp; <code>:solveSecondLayer</code> Solving step 3
+				<br> &nbsp; &nbsp; <code>:solveYellowCross</code> Solving step 4
+				<br> &nbsp; &nbsp; <code>:solveYellowFace</code> Solving step 5
+				<br> &nbsp; &nbsp; <code>:solveYellowCorners</code> Solving step 6
+				<br> &nbsp; &nbsp; <code>:solveYellowEdges</code> Solving step 7
+
 				<br><br>
 				In addition there are a few preset algorithms. Access these by typing:
 				<br> &nbsp; &nbsp; <code>~t</code> T Permutation
