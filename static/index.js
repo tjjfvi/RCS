@@ -5,15 +5,27 @@ $(() => {
 
 	const commands = {
 		solve,
-		solveSlow: () => solve(false),
-		scramble: () => interpretAlgorithm(genScramble()).map(t => ({...t, insta: true})).map(rotate),
-		scrambleSlow: () => interpretAlgorithm(genScramble()).map(rotate),
+		orient,
+		scramble: () => interpretAlgorithm(genScramble()).map(rotate),
 		insta: () => [
 			faceRotation,
 			cubeRotation,
 			...faceRotationQueue,
 			...cubeRotationQueue
 		].map(r => r && (r.insta = true)),
+		slow: () => [
+			faceRotation,
+			cubeRotation,
+			...faceRotationQueue,
+			...cubeRotationQueue
+		].map(r => r && (r.insta = false)),
+		solveWhiteCross,
+		solveWhiteFace,
+		solveSecondLayer,
+		solveYellowCross,
+		solveYellowFace,
+		solveYellowCorners,
+		solveYellowEdges,
 	};
 
 	const presetAlgorithms = {
@@ -224,21 +236,41 @@ $(() => {
 		let text = $(".algorithm").val();
 		let word = text.slice(0, start).split(" ").reverse()[0];
 
+		const ellipsis = "…";
+
 		let suggestions = (() => {
 
 			if(!word) return ["<b>:</b>", ..."~LRUDFBxyzMES".split("")];
 
-			return [
+			const groups = [":solve", ":solveWhite", ":solveYellow", ..."RUFLBD".split("").map(s => s + "w")]
+
+			let suggestions = [
 				...Object.keys(commands).map(c => ":" + c),
 				...Object.keys(presetAlgorithms).map(a => "~" + a),
 				...[].concat(...[..."RUFLBDxyzMES".split(""), ..."RUFLBD".split("").map(s => s + "w")].map(
 					m => ["", "'", "2", "'2"].map(a => m + a)
 				)),
-			].filter(w => w.slice(0, word.length) === word).map(w => "<span class='highlight'>" + word + "</span>" + w.slice(word.length));
+			];
+
+			groups.map(g => word !== g && suggestions.unshift(g + ellipsis))
+
+			suggestions = suggestions.filter(s => !groups.filter(g =>
+				s !== g + ellipsis            &&
+				word.slice(0, g.length) !== g &&
+				s.slice(0, g.length) === g    &&
+			true).length)
+
+
+			return suggestions
+				.filter(w => w.slice(0, word.length) === word)
+				.map(w => "<span class='highlight'>" + word + "</span>" + w.slice(word.length))
+			;
 
 		})();
 
-		$(".suggestions").html(suggestions.join("&#9;"));
+		console.log(suggestions.join("&#9;"));
+
+		$(".suggestions").html(suggestions.join("    "));
 
 		if(complete && suggestions.length) {
 
@@ -247,7 +279,8 @@ $(() => {
 				.map(s => s.split("").map((c, i) => c + i))
 			).filter((s, i) => +s.slice(1) === i).map(s => s[0]).join("");
 
-			if(suggestions.length === 1) newText += " ";
+			if(suggestions.length === 1 && suggestions[0][suggestions[0].length - 1] === ellipsis) newText = newText.slice(0, -1);
+			else if(suggestions.length === 1) newText += " ";
 
 			$input.val([...text.slice(0, start).split(" ").slice(0, -1), newText + (start === text.length ? "" : text.slice(start))].join(" "));
 			$input[0].selectionStart = $input[0].selectionEnd = start + newText.length - word.length;
@@ -546,9 +579,11 @@ $(() => {
 		});
 	}
 
-	function solve(insta = true){
-		let rotateInsta = obj => rotate({ ...obj, insta });
+	function inMiddleLayer(key){
+		return !key.includes("u") && !key.includes("d");
+	}
 
+	function orient(){
 		["d", "f"].map(k => {
 			let piece = findPiece(k);
 			let { axis, dir } = faces[piece.userData.key];
@@ -560,8 +595,12 @@ $(() => {
 			let rotAxis = _.xor([1, 0, 2], [axis, goalAxis])[0];
 			let faceKey = findFace(rotAxis, 1);
 
-			rotateInsta({ cube: findRotation(faceKey, piece.userData.key, k) });
+			rotate({ cube: findRotation(faceKey, piece.userData.key, k) });
 		});
+	}
+
+	function solveWhiteCross(){
+		orient();
 
 		edgeKeys.filter(k => k.includes("d")).filter(k => {
 			const piece = findPiece(k);
@@ -570,7 +609,7 @@ $(() => {
 
 			if(key === originalPiece) return;
 			if(key.split("").reverse().join("") === originalPiece)
-				return genFlip().map(rotateInsta);
+				return genFlip().map(rotate);
 
 			let coloredPos = key[originalPiece.indexOf(otherFaceKey)];
 			let flip = false;
@@ -581,21 +620,21 @@ $(() => {
 			}
 
 			if(coloredPos === otherFaceKey) {
-				rotateInsta({ face: findRotation(otherFaceKey, key, originalPiece) });
-				if(flip) genFlip().map(rotateInsta);
+				rotate({ face: findRotation(otherFaceKey, key, originalPiece) });
+				if(flip) genFlip().map(rotate);
 			}
 
 			let newKey = [coloredPos, "u"].sort().join("");
 			let rot = findRotation(coloredPos, key, newKey);
-			if(rot.amount) rotateInsta({ face: rot });
+			if(rot.amount) rotate({ face: rot });
 
-			rotateInsta({ face: findRotation("u", newKey, [otherFaceKey, "u"].sort().join("")) });
+			rotate({ face: findRotation("u", newKey, [otherFaceKey, "u"].sort().join("")) });
 
-			rotateInsta({ face: { faceKey: rot.faceKey, amount: -rot.amount }})
+			rotate({ face: { faceKey: rot.faceKey, amount: -rot.amount }})
 
-			if(piece.userData.key !== k) rotateInsta({ face: { faceKey: otherFaceKey, amount: 2 } });
+			if(piece.userData.key !== k) rotate({ face: { faceKey: otherFaceKey, amount: 2 } });
 
-			if(flip) genFlip().map(rotateInsta);
+			if(flip) genFlip().map(rotate);
 
 			return true;
 
@@ -608,6 +647,10 @@ $(() => {
 				];
 			}
 		});
+	}
+
+	function solveWhiteFace(){
+		solveWhiteCross();
 
 		cornerKeys.filter(k => k.includes("d")).map(k => {
 			const piece = findPiece(k);
@@ -619,7 +662,7 @@ $(() => {
 				let fs = key.split("").filter(k => k !== "d").reverse();
 				let algorithm = findRotation("u", ...fs).amount === -1 ? "R U R'" : "L' U' L";
 				let moves = interpretAlgorithm(algorithm);
-				rotateMovesY(moves, "f", fs[0]).map(rotateInsta);
+				rotateMovesY(moves, "f", fs[0]).map(rotate);
 				({ key, originalPiece } = piece.userData);
 			}
 
@@ -627,7 +670,7 @@ $(() => {
 			let sideFaces = originalPiece.split("").filter((_, i) => i !== key.indexOf("u"));
 			let possibleFaces = _.intersection(sideFaces, otherFaces);
 
-			rotateInsta({ face: findRotation("u", key, otherFaces.concat("u").sort().join("")) });
+			rotate({ face: findRotation("u", key, otherFaces.concat("u").sort().join("")) });
 
 			({ key, originalPiece } = piece.userData);
 
@@ -642,12 +685,14 @@ $(() => {
 
 			let algorithm = algorithms[ind];
 
-			rotateMovesY(interpretAlgorithm(algorithm), ind ? "f" : "f", possibleFaces[0]).map(rotateInsta);
+			rotateMovesY(interpretAlgorithm(algorithm), ind ? "f" : "f", possibleFaces[0]).map(rotate);
 
 			return true;
 		});
+	}
 
-		let inMiddleLayer = k => !k.includes("u") && !k.includes("d");
+	function solveSecondLayer(){
+		solveWhiteFace();
 
 		edgeKeys.filter(inMiddleLayer).map(k => {
 			const piece = findPiece(k);
@@ -664,7 +709,7 @@ $(() => {
 				let fs = key.split("").reverse();
 				let algorithm = algorithms[findRotation("u", ...fs).amount === -1 ? 0 : 1];
 				let moves = interpretAlgorithm(algorithm);
-				rotateMovesY(moves, "f", fs[0]).map(rotateInsta);
+				rotateMovesY(moves, "f", fs[0]).map(rotate);
 				({ key } = piece.userData);
 			}
 
@@ -672,7 +717,7 @@ $(() => {
 			let sideFace = originalPiece[+!key.indexOf("u")];
 			let topOppositeFace = findFace(faces[topFace].axis, -faces[topFace].dir);
 
-			rotateInsta({ face: findRotation("u", key, ["u", topOppositeFace].sort().join("")) });
+			rotate({ face: findRotation("u", key, ["u", topOppositeFace].sort().join("")) });
 
 			({ key } = piece.userData);
 
@@ -680,103 +725,107 @@ $(() => {
 
 			let algorithm = algorithms[ind];
 
-			rotateMovesY(interpretAlgorithm(algorithm), "f", sideFace).map(rotateInsta);
+			rotateMovesY(interpretAlgorithm(algorithm), "f", sideFace).map(rotate);
 
 			return true;
 		});
+	}
 
-		(() => {
+	function solveYellowCross(){
+		solveSecondLayer();
 
-			let algorithms = {
-				ffff: "F U R U' R' F' U F U R U' R' U R U' R' F' U'",
-				tftf: "F U R U' R' U R U' R' F'",
-				ttff: "F U R U' R' F'",
-				tttt: "",
-			};
+		let algorithms = {
+			ffff: "F U R U' R' F' U F U R U' R' U R U' R' F' U'",
+			tftf: "F U R U' R' U R U' R' F'",
+			ttff: "F U R U' R' F'",
+			tttt: "",
+		};
 
-			let flips = ["lu", "bu", "ru", "fu"].map(k => k.split("").sort().join("")).map(k =>
-				pieces[k].userData.originalPiece[pieces[k].userData.key.indexOf("u")] === "u"
-			);
+		let flips = ["lu", "bu", "ru", "fu"].map(k => k.split("").sort().join("")).map(k =>
+			pieces[k].userData.originalPiece[pieces[k].userData.key.indexOf("u")] === "u"
+		);
 
-			let algorithm, r;
+		let algorithm, r;
 
-			let stringifyFlips = f => f.map(b => b? "t" : "f").join("")
+		let stringifyFlips = f => f.map(b => b? "t" : "f").join("")
 
-			for(r = 0; (algorithm = algorithms[stringifyFlips(flips)]) === undefined; r++)
-				flips.unshift(flips.pop());
+		for(r = 0; (algorithm = algorithms[stringifyFlips(flips)]) === undefined; r++)
+			flips.unshift(flips.pop());
 
-			let amount = [0, 1, 2, -1][r];
+		let amount = [0, 1, 2, -1][r];
 
-			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotateInsta);
+		if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotate);
+	}
 
-		})();
+	function solveYellowFace(){
+		solveYellowCross();
 
-		(() => {
+		let rAl = "R U R' U R U2 R'";
+		let lAl = "L' U' L U' L' U2 L";
 
-			let rAl = "R U R' U R U2 R'";
-			let lAl = "L' U' L U' L' U2 L";
+		let algorithms = {
+			uuuu: ``,
+			ubrf: `${rAl}`,
+			flbu: `${lAl}`,
+			llrr: `${rAl} ${rAl}`,
+			fbuu: `${rAl} ${lAl}`,
+			lbbr: `${rAl} U ${rAl}`,
+			furu: `${rAl} U' ${lAl}`,
+			fuuf: `${rAl} U2 ${lAl}`,
+		};
 
-			let algorithms = {
-				uuuu: ``,
-				ubrf: `${rAl}`,
-				flbu: `${lAl}`,
-				llrr: `${rAl} ${rAl}`,
-				fbuu: `${rAl} ${lAl}`,
-				lbbr: `${rAl} U ${rAl}`,
-				furu: `${rAl} U' ${lAl}`,
-				fuuf: `${rAl} U2 ${lAl}`,
-			};
+		let twists = ["lfu", "blu", "rbu", "fru"].map(k => k.split("").sort().join("")).map(k =>
+			pieces[k].userData.key[pieces[k].userData.originalPiece.indexOf("u")]
+		);
 
-			let twists = ["lfu", "blu", "rbu", "fru"].map(k => k.split("").sort().join("")).map(k =>
-				pieces[k].userData.key[pieces[k].userData.originalPiece.indexOf("u")]
-			);
+		let algorithm, r;
 
-			let algorithm, r;
+		for(r = 0; (algorithm = algorithms[twists.join("")]) === undefined; r++) {
+			twists.unshift(twists.pop());
+			twists = twists.map(t => rotatePieceKey(t, "u", 1, false));
+			if(r > 5) throw "";
+		}
 
-			for(r = 0; (algorithm = algorithms[twists.join("")]) === undefined; r++) {
-				twists.unshift(twists.pop());
-				twists = twists.map(t => rotatePieceKey(t, "u", 1, false));
-				if(r > 5) throw "";
+		let amount = [0, 1, 2, -1][r];
+
+		if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotate);
+	}
+
+	function solveYellowCorners(){
+		solveYellowFace();
+
+		let algorithm = "R' F R' B2 R F' R' B2 R2 U";
+
+		let matchingSides = centerKeys.filter(inMiddleLayer).filter(f => {
+			let findOriginal = a => {
+				let { key, originalPiece } = pieces[[rotatePieceKey(f, "u", a, false), f, "u"].sort().join("")].userData;
+				return originalPiece[key.indexOf(f)];
 			}
 
-			let amount = [0, 1, 2, -1][r];
+			return findOriginal(1) === findOriginal(-1);
+		});
 
-			if(algorithm) rotateMovesY(interpretAlgorithm(algorithm), "f", rotatePieceKey("f", "u", -amount, false)).map(rotateInsta);
+		switch(matchingSides.length){
+			case 0:
+				let moves = interpretAlgorithm(algorithm);
+				moves.map(rotate);
+				moves.map(rotate);
+				break;
 
-		})();
+			case 1:
+				rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0]).map(rotate)
+				break;
 
-		(() => {
+			case 4: break;
+		}
 
-			let algorithm = "R' F R' B2 R F' R' B2 R2 U";
+		let { key, originalPiece } = findPiece(cornerKeys.filter(k => k.includes("u"))[0]).userData;
 
-			let matchingSides = centerKeys.filter(inMiddleLayer).filter(f => {
-				let findOriginal = a => {
-					let { key, originalPiece } = pieces[[rotatePieceKey(f, "u", a, false), f, "u"].sort().join("")].userData;
-					return originalPiece[key.indexOf(f)];
-				}
+		rotate({ face: findRotation("u", key.split("").sort().join(""), originalPiece) });
+	}
 
-				return findOriginal(1) === findOriginal(-1);
-			});
-
-			switch(matchingSides.length){
-				case 0:
-					let moves = interpretAlgorithm(algorithm);
-					moves.map(rotateInsta);
-					moves.map(rotateInsta);
-					break;
-
-				case 1:
-					rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0]).map(rotateInsta)
-					break;
-
-				case 4: break;
-			}
-
-			let { key, originalPiece } = findPiece(cornerKeys.filter(k => k.includes("u"))[0]).userData;
-
-			rotateInsta({ face: findRotation("u", key.split("").sort().join(""), originalPiece) });
-
-		})();
+	function solveYellowEdges(){
+		solveYellowCorners();
 
 		let permuteLastEdges = () => {
 
@@ -790,7 +839,7 @@ $(() => {
 			switch(matchingSides.length){
 				case 0:
 				case 1:
-					rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0] || "b").map(rotateInsta);
+					rotateMovesY(interpretAlgorithm(algorithm), "b", matchingSides[0] || "b").map(rotate);
 					permuteLastEdges();
 					break;
 
@@ -800,7 +849,9 @@ $(() => {
 		};
 
 		permuteLastEdges();
+	}
 
-		return [];
+	function solve(){
+		solveYellowEdges();
 	}
 })
