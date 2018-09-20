@@ -255,7 +255,7 @@ $(() => {
 
 			if(!word) return ["<b>:</b>", ..."~LRUDFBxyzMES".split("")];
 
-			const groups = [":solve", ":solveWhite", ":solveYellow", ..."RUFLBD".split("").map(s => s + "w")]
+			const groups = [":solve", ":solveWhite", ":solveYellow", ..."RUFLBD".split("").map(s => s + "w")].reverse();
 
 			let suggestions = [
 				...Object.keys(commands).map(c => ":" + c),
