@@ -271,7 +271,16 @@ $(() => {
 				s !== g + ellipsis            &&
 				word.slice(0, g.length) !== g &&
 				s.slice(0, g.length) === g    &&
-			true).length)
+			true).length);
+
+			let orderGuide = [
+				":solve",
+				":solveWhite…",
+				":solveSecondLayer",
+				":solveYellow…",
+			];
+
+			suggestions.sort((a, b) => orderGuide.indexOf(a) - orderGuide.indexOf(b));
 
 
 			return suggestions
