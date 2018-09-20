@@ -326,8 +326,12 @@ $(() => {
 
 			let face = faces[cube ? rotation.faceKey : rotation.rotFaceKey];
 
+			let clamped = Math.min(rotation.progress, 1);
+
+			let eased = 3 * clamped ** 2 - 2 * clamped ** 3;
+
 			rotateGroup.rotation["xyz"[face.axis]] =
-				Math.min(rotation.progress, 1) *
+				eased *
 				rotation.amount *
 				face.dir *
 				-Math.tau/4 *
