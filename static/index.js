@@ -83,6 +83,9 @@ $(() => {
 	let cubeRotation = null;
 	let cubeRotationQueue = [];
 
+	const displayRotations = [];
+	let displayRotationsStart = 0;
+
 	const t = three = THREE;
 
 	const scene = new t.Scene();
@@ -187,6 +190,11 @@ $(() => {
 						let val = $(this).val();
 
 						if(!val) return;
+
+						e.shiftKey = false;
+
+						if(faceRotation === null && cubeRotation === null)
+							displayRotationsStart = displayRotations.length;
 
 						let reverse = turns => (e.shiftKey ? turns.reverse().map(t => {
 							if(t.face) t.face.amount *= -1;
@@ -319,6 +327,7 @@ $(() => {
 				if(cube) cubeRotation = null;
 				else faceRotation = null;
 				if(rotationQueue.length) groupPieces(rotationQueue.shift());
+				updateMoves();
 				return;
 			}
 
@@ -337,6 +346,23 @@ $(() => {
 				-Math.tau/4 *
 			1;
 		})
+	}
+
+	function updateMoves(){
+		let moves = displayRotations.slice(displayRotationsStart);
+		let ind = (faceRotation || cubeRotation || { ind: -1 }).ind - displayRotationsStart;
+
+		if(ind >= 0 && moves[ind]) moves[ind] = `<span class="current">${moves[ind]}</span><span class="highlight">`;
+
+		let slicedMoves = moves;
+
+		if(moves[ind]) slicedMoves = moves.slice(Math.max(0, (ind - ind % 25)), Math.min((ind - ind % 25) + 25, moves.length))
+
+		if(!moves[ind] && moves.length > 50) slicedMoves = [];
+
+		console.log(slicedMoves);
+
+		$(".moves").html(slicedMoves.filter(s => !!s).join("    ") + (moves[ind] ? "</span>" : ""));
 	}
 
 	function createCubelet(cubeletKey){
@@ -441,8 +467,8 @@ $(() => {
 		return tile;
 	}
 
-	function rotateCube({ insta, faceKey, amount }){
-		let rotation = { insta, faceKey, amount, progress: 0 };
+	function rotateCube({ insta, faceKey, amount, ind }){
+		let rotation = { insta, faceKey, amount, progress: 0, ind };
 
 		let updatedPieces = Object.assign({}, ...pieceKeys.map(key => {
 			let val = ({ [rotatePieceKey(pieces[key].userData.key, faceKey, amount)]: pieces[key] });
@@ -463,7 +489,7 @@ $(() => {
 		cubeRotateGroup.rotation.set(0, 0, 0);
 	}
 
-	function rotateFace({ insta, faceKey, double, amount }){
+	function rotateFace({ insta, faceKey, double, amount, ind }){
 		let otherFaceKey = findFace(faces[faceKey].axis, -faces[faceKey].dir);
 
 		let facePieceKeys = pieceKeys.filter(k => k.includes(faceKey) || (double && k.includes(otherFaceKey)));
@@ -477,6 +503,7 @@ $(() => {
 			pieces: facePieceKeys.map(k => pieces[k]),
 			cube: false,
 			progress: 0,
+			ind,
 		};
 
 		let updatedPieces = Object.assign({}, ...facePieceKeys.map(key => ({ [rotatePieceKey(pieces[key].userData.key, faceKey, amount)]: pieces[key] })));
@@ -505,15 +532,24 @@ $(() => {
 		});
 	}
 
-	function rotate({ face = { faceKey: "u", amount: 0 }, cube = { faceKey: "u", amount: 0 }, insta }){
-		rotateFace({ ...face, insta });
-		rotateCube({ ...cube, insta });
+	function rotate(rot){
+		displayRotations.push(stringifyRotation(rot));
+
+		let { face = { faceKey: "u", amount: 0 }, cube = { faceKey: "u", amount: 0 }, insta } = rot;
+		let ind = displayRotations.length;
+
+		rotateFace({ ...face, insta, ind });
+		rotateCube({ ...cube, insta, ind });
+
+		updateMoves();
 	}
 
 	function interpretAlgorithm(a){
 		return a.split(" ").map(moveStr => {
 			let m = moveRegex.exec(moveStr);
 			if(!m) return { orig: moveStr };
+
+			let stringified = moveStr;
 
 			const amount = {
 				"":    1,
@@ -527,11 +563,13 @@ $(() => {
 				return {
 					face: { faceKey: findFace(face.axis, (m[2] ? -1 : 1) * face.dir), amount },
 					cube: { faceKey: m[1].toLowerCase(), amount: m[2].length * amount },
+					stringified,
 				};
 			}
 
 			if(m[3]) return {
-				cube: { faceKey: "ruf"["xyz".split("").indexOf(m[3].toLowerCase())], amount }
+				cube: { faceKey: "ruf"["xyz".split("").indexOf(m[3].toLowerCase())], amount },
+				stringified,
 			};
 
 			if(m[4]) {
@@ -539,9 +577,46 @@ $(() => {
 				return {
 					cube: { faceKey, amount: -amount },
 					face: { faceKey, double: true, amount },
+					stringified,
 				};
 			}
 		});
+	}
+
+	function stringifyRotation(rotation){
+		if(rotation.stringified) return rotation.stringified;
+		if(rotation.orig !== undefined) return "";
+
+		let face = rotation.face && rotation.face.amount;
+		let cube = rotation.cube && rotation.cube.amount;
+
+		if(face && !cube)
+			return rotation.face.faceKey.toUpperCase() + stringifyAmount(rotation.face.amount);
+
+		if(face && cube && rotation.face.double && rotation.cube.amount === -rotation.face.amount)
+			return "MES"["rub".split("").indexOf(rotation.face.faceKey)] + stringifyAmount(rotation.face.amount);
+
+		if(face && cube && !rotation.face.double && rotation.face.amount === rotation.cube.amount)
+			return rotation.cube.faceKey.toUpperCase() + "w" + stringifyAmount(rotation.cube.amount);
+
+		if(!face && cube)
+			return "xyz"["ruf".split("").indexOf(rotation.cube.faceKey)] + stringifyAmount(rotation.cube.amount);
+
+		if(!face && !cube) return "";
+
+		console.log(rotation.stringified, rotation);
+
+		return "?";
+
+		function stringifyAmount(amount){
+			console.log(amount);
+			return {
+				 "1":   "",
+				"-1":  "'",
+				 "2":  "2",
+				"-2": "-2",
+			}[amount+""];
+		}
 	}
 
 	function findFace(axis, dir) {
@@ -640,7 +715,7 @@ $(() => {
 
 			if(faces[coloredPos].axis === 1) {
 				flip = true;
-				coloredPos = key.split("").filter(k => k !== coloredPos);
+				coloredPos = key.split("").filter(k => k !== coloredPos).join("");
 			}
 
 			if(coloredPos === otherFaceKey) {
