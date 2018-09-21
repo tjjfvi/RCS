@@ -146,3 +146,28 @@ a:hover {
 .suggestions .highlight {
 	color: #454850;
 }
+
+.loading {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	animation-name: loading;
+	animation-duration: 1s;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	padding: 0;
+}
+
+canvas + .loading {
+	display: none;
+}
+
+@keyframes loading {
+	0% {
+		transform: translate(-50%, -50%) rotate(0turn);
+	}
+
+	100% {
+		transform: translate(-50%, -50%) rotate(1turn);
+	}
+}
