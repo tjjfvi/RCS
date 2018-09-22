@@ -5,6 +5,8 @@ $(() => {
 
 	const commands = {
 		solve,
+		save,
+		reset,
 		orient,
 		scramble: () => interpretAlgorithm(genScramble()).map(rotate),
 		insta: () => [
@@ -86,6 +88,10 @@ $(() => {
 	const displayRotations = [];
 	let displayRotationsStart = 0;
 
+	const queryParams = Object.assign(...location.search.slice(1).split("&").map(s =>
+		({ [s.split("=")[0]]: s.split("=").slice(1).join("=") })
+	));
+
 	const t = three = THREE;
 
 	const scene = new t.Scene();
@@ -144,8 +150,9 @@ $(() => {
 
 	scene.background = new t.Color(0x151820);
 
-
-	pieceKeys.map(createCubelet);
+	(queryParams.cube || pieceKeys.join("-")).split("-").map((place, i) => [place, pieceKeys[i]]).map(
+		([place, key], i) =>  true && createCubelet(key, place)
+	);
 
 	render();
 
@@ -365,27 +372,34 @@ $(() => {
 		$(".moves").html(slicedMoves.filter(s => !!s).join("    ") + (moves[ind] ? "</span>" : ""));
 	}
 
-	function createCubelet(cubeletKey){
+	function createCubelet(cubeletKey, place){
 		let cubelet = new t.Group();
 		cubelet.name = cubeletKey;
 
-		cubelet.add(...cubeletKey.split("").map(createTile));
+		cubeletKey.split("").map((f, i) => [f, place[i]]).map(([faceKey, dirKey]) => {
+			let tile = createTile(faceKey, dirKey);
+			place.split("").map(dirKey => {
+				let face = faces[dirKey];
+				tile.position["xyz"[face.axis]] = face.dir * (cubeletSize * .75 + cubeletSeperation);
+			});
+			let face = faces[dirKey];
+			tile.position["xyz"[face.axis]] += face.dir * (cubeletSize/2 - tileThickness/2);
+			cubelet.add(tile);
+		});
+
 		cube.add(cubelet);
-		pieces[cubeletKey] = cubelet;
+		pieces[place.split("").sort().join("")] = cubelet;
 
-		cubeletKey.split("").map(f => faces[f]).map(face =>
-			cubelet.position["xyz"[face.axis]] = face.dir * (cubeletSize * .75 + cubeletSeperation)
-		)
-
+		cubelet.userData.originalPlace = place;
 		cubelet.userData.originalPiece = cubeletKey;
-		cubelet.userData.key = cubeletKey;
+		cubelet.userData.key = place;
 		cubelet.userData.keyHist = [];
 
 		return cubelet;
 	}
 
-	function createTile(faceKey){
-		let face = faces[faceKey];
+	function createTile(faceKey, dirKey){
+		let face = faces[dirKey];
 
 		let dimensions = [cubeletSize, cubeletSize, cubeletSize];
 		dimensions[face.axis] = tileThickness;
@@ -458,11 +472,13 @@ $(() => {
 
 		geo.computeVertexNormals();
 
-		let tile = new t.Mesh(geo, new t.MeshStandardMaterial({ color: face.color }));
+		let tile = new t.Mesh(geo, new t.MeshStandardMaterial({ color: faces[faceKey].color }));
 
 		tile.position["xyz"[face.axis]] = face.dir * (cubeletSize / 2 - tileThickness / 2);
 
 		tile.name = faceKey;
+
+		tile.userData.key = faceKey;
 
 		return tile;
 	}
@@ -497,7 +513,7 @@ $(() => {
 		let rotation = {
 			insta,
 			faceKey,
-			rotFaceKey: pieces[faceKey].userData.originalPiece,
+			rotFaceKey: pieces[faceKey].userData.originalPlace,
 			double,
 			amount,
 			pieces: facePieceKeys.map(k => pieces[k]),
@@ -642,6 +658,16 @@ $(() => {
 		).join("");
 		if(modify) pieces[key.split("").sort().join("")].userData.key = rotKey;
 		return rotKey.split("").sort().join("");
+	}
+
+	function save(){
+		let cubeString = pieceKeys.map(k => findPiece(k).userData.key).join("-");
+		history.pushState(null, null, `?cube=${encodeURI(cubeString)}`)
+		console.log(cubeString);
+	}
+
+	function reset(){
+		history.pushState(null, null, "?");
 	}
 
 	function genScramble(){
