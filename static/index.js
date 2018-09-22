@@ -1,7 +1,7 @@
 $(() => {
 	const cubeletSize = .628;
 	const tileThickness = .05;
-	const cubeletSeperation = .2;
+	const cubeletSeperation = .05;
 
 	const commands = {
 		solve,
@@ -109,10 +109,9 @@ $(() => {
 	cube.name = "Cube";
 
 	const lights = [
-		[new t.Vector3(0,  5, -1),  .75],
+		[new t.Vector3(0,  5, -1), .75],
 		[new t.Vector3(7,  0, -1), .75],
 		[new t.Vector3(0,  0,  5),   2],
-		[new t.Vector3(0,  0, -5), 1.5],
 		[new t.Vector3(0,  0, -2), .25],
 	].map(([position, intensity]) => {
 
@@ -151,7 +150,7 @@ $(() => {
 	scene.background = new t.Color(0x151820);
 
 	(queryParams.cube || pieceKeys.join("-")).split("-").map((place, i) => [place, pieceKeys[i]]).map(
-		([place, key], i) =>  true && createCubelet(key, place)
+		([place, key], i) => createCubelet(key, place)
 	);
 
 	render();
@@ -380,7 +379,7 @@ $(() => {
 			let tile = createTile(faceKey, dirKey);
 			place.split("").map(dirKey => {
 				let face = faces[dirKey];
-				tile.position["xyz"[face.axis]] = face.dir * (cubeletSize * .75 + cubeletSeperation);
+				tile.position["xyz"[face.axis]] = face.dir * (cubeletSize + cubeletSeperation);
 			});
 			let face = faces[dirKey];
 			tile.position["xyz"[face.axis]] += face.dir * (cubeletSize/2 - tileThickness/2);
@@ -407,8 +406,8 @@ $(() => {
 		let x0 = cubeletSize/2;
 		let y0 = cubeletSize/2;
 		let z = tileThickness/2;
-		let x1 = x0 - z;
-		let y1 = y0 - z;
+		let x1 = x0 - z * 2;
+		let y1 = y0 - z * 2;
 
 		z *= -face.dir;
 
