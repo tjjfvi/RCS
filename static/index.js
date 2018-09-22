@@ -359,17 +359,17 @@ $(() => {
 		let moves = displayRotations.slice(displayRotationsStart);
 		let ind = (faceRotation || cubeRotation || { ind: -1 }).ind - displayRotationsStart;
 
-		if(ind >= 0 && moves[ind]) moves[ind] = `<span class="current">${moves[ind]}</span><span class="highlight">`;
+		if(ind >= 0 && moves[ind] !== undefined) moves[ind] = `<span class="current">${moves[ind]}</span><span class="highlight">`;
 
 		let slicedMoves = moves;
 
-		if(moves[ind]) slicedMoves = moves.slice(Math.max(0, (ind - ind % 25)), Math.min((ind - ind % 25) + 25, moves.length))
+		if(moves[ind] !== undefined) slicedMoves = moves.slice(Math.max(0, (ind - ind % 25)), Math.min((ind - ind % 25) + 25, moves.length))
 
-		if(!moves[ind] && moves.length > 50) slicedMoves = [];
+		if(moves[ind] === undefined && moves.length > 25) slicedMoves = [];
 
 		console.log(slicedMoves);
 
-		$(".moves").html(slicedMoves.filter(s => !!s).join("    ") + (moves[ind] ? "</span>" : ""));
+		$(".moves").html(slicedMoves.join("    ") + (moves[ind] !== undefined ? "</span>" : ""));
 	}
 
 	function createCubelet(cubeletKey, place){
@@ -561,7 +561,7 @@ $(() => {
 	}
 
 	function interpretAlgorithm(a){
-		return a.split(" ").map(moveStr => {
+		return a.trim().split(" ").map(moveStr => {
 			let m = moveRegex.exec(moveStr);
 			if(!m) return { orig: moveStr };
 
@@ -601,7 +601,7 @@ $(() => {
 
 	function stringifyRotation(rotation){
 		if(rotation.stringified) return rotation.stringified;
-		if(rotation.orig !== undefined) return "";
+		if(rotation.orig !== undefined) return "&#8212;";
 
 		let face = rotation.face && rotation.face.amount;
 		let cube = rotation.cube && rotation.cube.amount;
@@ -618,7 +618,7 @@ $(() => {
 		if(!face && cube)
 			return "xyz"["ruf".split("").indexOf(rotation.cube.faceKey)] + stringifyAmount(rotation.cube.amount);
 
-		if(!face && !cube) return "";
+		if(!face && !cube) return "&#8212;";
 
 		console.log(rotation.stringified, rotation);
 
