@@ -155,6 +155,16 @@ $(() => {
 
 	render();
 
+	if("serviceWorker" in navigator)
+		navigator.serviceWorker.register("sw.js")
+			.then(registration => {
+				console.log(JSON.stringify(registration))
+				console.log(`ServiceWorker ${registration.installing ? "registered" : "active"} with scope: ${registration.scope}`);
+			})
+			.catch(error => {
+				console.log("ServiceWorker registration failed with error:", error)
+			})
+
 	$(".helpScreen").overlayScrollbars({ className: "os-theme-light" });
 
 	setupListeners();
