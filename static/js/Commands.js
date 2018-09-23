@@ -5,6 +5,12 @@ module.exports = ({
 	Rotate: {
 		rotate,
 		changeSpeed,
+	},
+	Pieces: {
+		pieceKeys,
+	},
+	Utils: {
+		findPiece,
 	}
 }) => {
 	const commands = {
