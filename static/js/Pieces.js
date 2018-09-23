@@ -152,6 +152,7 @@ module.exports = () => {
 		tile.name = faceKey;
 
 		tile.userData.key = faceKey;
+		tile.userData.material = tile.material;
 
 		return tile;
 	}
