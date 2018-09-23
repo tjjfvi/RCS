@@ -1,59 +1,28 @@
+
 $(() => {
 
-	const Pieces = require("./Pieces")({});
+	const dependencies = require("./preloadDependencies");
 
-	const Utils = require("./Utils")({
-		Pieces,
-	});
+	const {
 
-	const MovePreview = require("./MovePreview")({});
-
-	const Rotate = require("./Rotate")({
 		Pieces,
 		Utils,
 		MovePreview,
-	});
-
-	const Algorithms = require("./Algorithms")({
-		Pieces,
-		Utils,
-	});
-
-	const Solve = require("./Solve")({
 		Rotate,
 		Algorithms,
-		Pieces,
-		Utils,
-	});
-
-	const Scramble = require("./Scramble")({
-		Rotate,
-		Algorithms,
-		Pieces,
-	})
-
-	const Commands = require("./Commands")({
 		Solve,
 		Scramble,
-		Algorithms,
-		Rotate,
-	});
-
-	const Suggestions = require("./Suggestions")({
 		Commands,
-		Algorithms,
-		Rotate,
-	});
-
-	const History = require("./History")({});
-
-	const UI = require("./UI")({
 		Suggestions,
 		History,
-		Commands,
-		Algorithms,
-		Rotate,
-	});
+		UI,
+
+	} = new Proxy({}, {
+		get: (target, key) => {
+			if(target[key]) return target[key];
+			return target[key] = dependencies[key](target);
+		}
+	})
 
 	const queryParams = Object.assign(...location.search.slice(1).split("&").map(s =>
 		({ [s.split("=")[0]]: s.split("=").slice(1).join("=") })
