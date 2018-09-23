@@ -152,7 +152,7 @@ module.exports = () => {
 		tile.name = faceKey;
 
 		tile.userData.key = faceKey;
-		tile.userData.material = tile.material;
+		tile.userData.color = tile.material.color;
 
 		return tile;
 	}

@@ -2,20 +2,18 @@
 module.exports = ({
 	Solve,
 	Scramble,
+	Blindfold,
 	Rotate: {
 		rotate,
 		changeSpeed,
 	},
 	Pieces: {
 		pieceKeys,
-		pieces,
 	},
 	Utils: {
 		findPiece,
 	}
 }) => {
-	const t = three = THREE;
-
 	const commands = {
 		...Solve,
 		save,
@@ -24,11 +22,8 @@ module.exports = ({
 		scramble: Scramble.command,
 		insta: () => changeSpeed(true),
 		slow: () => changeSpeed(false),
-		toggleBlindfold,
+		toggleBlindfold: Blindfold.toggle,
 	};
-
-	let blindfoldMode = false;
-	let blindfoldMaterial = new t.MeshStandardMaterial({ color: 0x151820 });
 
 	return { commands };
 
@@ -39,12 +34,5 @@ module.exports = ({
 
 	function reset(){
 		history.pushState(null, null, "?");
-	}
-
-	function toggleBlindfold(){
-		blindfoldMode = !blindfoldMode;
-		[].concat(...pieceKeys.map(k => pieces[k].children)).map(tile => {
-			tile.material = blindfoldMode ? blindfoldMaterial : tile.userData.material;
-		});
 	}
 };

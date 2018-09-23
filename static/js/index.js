@@ -12,6 +12,7 @@ $(() => {
 		Algorithms,
 		Solve,
 		Scramble,
+		Blindfold,
 		Commands,
 		Suggestions,
 		History,
@@ -118,6 +119,7 @@ $(() => {
 		Date.tick();
 
 		Rotate.update();
+		Blindfold.update();
 
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();
