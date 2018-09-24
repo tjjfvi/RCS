@@ -141,6 +141,14 @@ a:hover {
 	transform: translate(-50%, -50%);
 
 	white-space: pre;
+
+	opacity: 0;
+
+	transition: opacity .2s;
+}
+
+.suggestions.show, .movePreview.show {
+	opacity: 1;
 }
 
 .movePreview {

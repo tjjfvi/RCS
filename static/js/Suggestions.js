@@ -63,7 +63,27 @@ module.exports = ({
 
 		})();
 
-		$(".suggestions").html(suggestions.join("    "));
+		let $oldEls = $(".suggestions");
+		let $newEl = $();
+		let html = suggestions.join("    ");
+
+		if($oldEls.eq(0).html() !== html)
+			$newEl = $("<span>")
+				.addClass("suggestions")
+				.html(html)
+				.prependTo(".suggestionsWrapper")
+			;
+
+		setTimeout(() => {
+
+			if(!$newEl.is(":first-child")) return;
+
+			$newEl.addClass("show");
+			$oldEls.removeClass("show");
+
+			setTimeout(() => $oldEls.remove(), 500);
+
+		}, 0);
 
 		if(complete && suggestions.length) {
 
