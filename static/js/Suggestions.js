@@ -11,7 +11,9 @@ module.exports = ({
 		update,
 	}
 
-	function update(complete){
+	function update(complete, e){
+		if(e.type === "keydown") return;
+
 		let $input = $(".multi");
 
 		if($input[0].selectionStart !== $input[0].selectionEnd)
@@ -63,28 +65,6 @@ module.exports = ({
 
 		})();
 
-		let $oldEls = $(".suggestions");
-		let $newEl = $();
-		let html = suggestions.join("    ");
-
-		if($oldEls.eq(0).html() !== html)
-			$newEl = $("<span>")
-				.addClass("suggestions")
-				.html(html)
-				.prependTo(".suggestionsWrapper")
-			;
-
-		setTimeout(() => {
-
-			if(!$newEl.is(":first-child")) return;
-
-			$newEl.addClass("show");
-			$oldEls.removeClass("show");
-
-			setTimeout(() => $oldEls.remove(), 500);
-
-		}, 0);
-
 		if(complete && suggestions.length) {
 
 			let newText = _.intersection(...suggestions
@@ -99,6 +79,27 @@ module.exports = ({
 			$input[0].selectionStart = $input[0].selectionEnd = start + newText.length - word.length;
 
 		}
+
+		let $oldEls = $(".suggestions");
+		let $newEl;
+		let html = suggestions.join("    ");
+
+		$newEl = $("<span>")
+			.addClass("suggestions")
+			.html(html)
+			.appendTo(".suggestionsWrapper")
+		;
+
+		setTimeout(() => {
+
+			if(!$newEl.is(":last-child")) return;
+
+			$newEl.addClass("show");
+			$oldEls.removeClass("show");
+
+			setTimeout(() => $oldEls.remove(), 1000);
+
+		}, 50);
 
 	}
 

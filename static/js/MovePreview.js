@@ -22,24 +22,23 @@ module.exports = () => {
 		if(moves[ind] === undefined && moves.length > 25) slicedMoves = [];
 
 		let $oldEls = $(".movePreview");
-		let $newEl = $();
+		let $newEl;
 		let html = slicedMoves.join("    ") + (moves[ind] !== undefined ? "</span>" : "");
 
-		if($oldEls.eq(0).html() !== html)
-			$newEl = $("<span>")
-				.addClass("movePreview")
-				.html(html)
-				.prependTo(".movePreviewWrapper")
-			;
+		$newEl = $("<span>")
+			.addClass("movePreview")
+			.html(html)
+			.appendTo(".movePreviewWrapper")
+		;
 
 		setTimeout(() => {
 
-			if(!$newEl.is(":first-child")) return;
+			if(!$newEl.is(":last-child")) return;
 
 			$newEl.addClass("show");
 			$oldEls.removeClass("show");
 
-			setTimeout(() => $oldEls.remove(), 500);
+			setTimeout(() => $oldEls.remove(), 1000);
 
 		}, 0);
 	}

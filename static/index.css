@@ -129,11 +129,12 @@ a:hover {
 }
 
 .suggestions, .movePreview {
+	background: #151820;
 	color: #353840;
 	text-align: center;
 	font-size: 20px;
 
-	min-width: 33vw;
+	width: 100vw;
 
 	position: absolute;
 	top: calc(90% + 25px + 25px);
@@ -144,11 +145,12 @@ a:hover {
 
 	opacity: 0;
 
-	transition: opacity .2s;
+	transition: opacity 100000s;
 }
 
 .suggestions.show, .movePreview.show {
 	opacity: 1;
+	transition: opacity .2s;
 }
 
 .movePreview {
