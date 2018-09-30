@@ -82,7 +82,7 @@ module.exports = ({
 
 		let $oldEls = $(".suggestions");
 		let $newEl;
-		let html = suggestions.join("    ");
+		let html = suggestions.join("    ") || " ";
 
 		$newEl = $("<span>")
 			.addClass("suggestions")
