@@ -21,7 +21,26 @@ module.exports = () => {
 
 		if(moves[ind] === undefined && moves.length > 25) slicedMoves = [];
 
-		$("\.movePreview").html(slicedMoves.join("    ") + (moves[ind] !== undefined ? "</span>" : ""));
+		let $oldEls = $(".movePreview");
+		let $newEl;
+		let html = slicedMoves.join("    ") + (moves[ind] !== undefined ? "</span>" : "");
+
+		$newEl = $("<span>")
+			.addClass("movePreview")
+			.html(html)
+			.appendTo(".movePreviewWrapper")
+		;
+
+		setTimeout(() => {
+
+			if(!$newEl.is(":last-child")) return;
+
+			$newEl.addClass("show");
+			$oldEls.removeClass("show");
+
+			setTimeout(() => $oldEls.remove(), 1000);
+
+		}, 0);
 	}
 
 	function add(rot){

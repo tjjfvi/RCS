@@ -23,7 +23,7 @@ module.exports = ({
 			.keyup(handler)
 		;
 
-		Suggestions.update();
+		Suggestions.update(false, { type: "keyup" });
 
 		function handler(e){
 			switch(e.key){
@@ -61,10 +61,10 @@ module.exports = ({
 					break;
 
 				case "Tab":
-					Suggestions.update(true);
+					Suggestions.update(true, e);
 					e.preventDefault();
 			}
-			Suggestions.update();
+			Suggestions.update(false, e);
 		}
 	}
 }
