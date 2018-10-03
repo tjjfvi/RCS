@@ -9,13 +9,21 @@
 	let [
 		loadSvg,
 		jsFiles
-	] = await Promise.all(["loading.svg", "jsFiles.json"].map(p => new Promise(resolve =>
-		$.get(p, resolve)
+	] = await Promise.all([{
+		url: "loading.svg",
+		mimeType: "text/plain",
+	}, { url: "jsFiles.json" }].map(p => new Promise(resolve =>
+		$.get({
+			...p,
+			success: resolve,
+		})
 	)));
 
 	await new Promise($);
 
 	let $s, length, totalLength, checks, interval;
+
+	console.log(loadSvg);
 
 	initLoadSvg();
 
@@ -67,7 +75,7 @@
 	}
 
 	function initLoadSvg(){
-		$(".loading").append(loadSvg.activeElement)
+		$(".loading").html(loadSvg)
 
 		$s = [...$("svg").children(":not(style)")].map($);
 
