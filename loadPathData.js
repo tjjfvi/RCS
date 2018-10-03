@@ -4,7 +4,7 @@ let counters = {};
 const data = {
 	svgHeader: `
 		<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-			 viewBox="200 200 1096 1528" style="enable-background:new 0 0 1296 1728;" xml:space="preserve">
+			 viewBox="0 0 1296 1728" style="enable-background:new 0 0 1296 1728;" xml:space="preserve">
 			<style>
 				svg * {
 					fill: none;
@@ -15,15 +15,15 @@ const data = {
 				}
 
 				.back {
-					stroke: #969696;
+					stroke: #636e72;
 				}
 
 				.ghost {
-					stroke: #c8c8c8;
+					stroke: #636e72;
 				}
 
 				.front {
-					stroke: #000000;
+					stroke: #ffffff;
 				}
 			</style>
 	`.replace(/\s+/g, " "),

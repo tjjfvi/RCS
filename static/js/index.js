@@ -1,8 +1,6 @@
 
 $(() => {
 
-	const dependencies = require("./preloadDependencies");
-
 	const {
 
 		Pieces,
@@ -21,7 +19,7 @@ $(() => {
 	} = new Proxy({}, {
 		get: (target, key) => {
 			if(target[key]) return target[key];
-			return target[key] = dependencies[key](target);
+			return target[key] = require(key)(target);
 		}
 	})
 

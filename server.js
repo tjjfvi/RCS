@@ -11,18 +11,20 @@ const createLoadPath = require("./createLoadPath.js");
 
 let nextLoadSvg = createLoadPath();
 
-router.get("/js/preloadDependencies.js", async (req, res) => {
+router.get("/jsFiles.json", async (req, res) => {
 	let paths = await fs.readdir(__dirname + "/static/js/");
 
 	paths.sort();
 
+	let stats = await Promise.all(paths.map(p => fs.stat(__dirname + "/static/js/" + p)));
+
 	let slicedPaths = paths.map(p => p.slice(0, -3));
 
-	let properties = slicedPaths.map(p => `\t${JSON.stringify(p)}: require(${JSON.stringify("./" + p)}),`);
+	let properties = slicedPaths.map((p, i) => `\t${JSON.stringify(p)}: { "size": ${stats[i].size} },`);
 
-	let js = `module.exports = {\n${properties.join("\n")}\n}`;
+	let json = `{\n${properties.join("\n").slice(0, -1)}\n}`;
 
-	res.set("Content-Type", "text/javascript").send(js);
+	res.set("Content-Type", "application/json").send(json);
 })
 
 router.get("/sw.js", async (req, res) => {

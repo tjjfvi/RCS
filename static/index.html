@@ -8,11 +8,12 @@
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.5.2/css/OverlayScrollbars.css">
 
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.5.2/js/jquery.overlayScrollbars.js"></script>
-		<script src="three.min.js"></script>
 
-		<script src="require1k.js" data-main="./js/index"></script>
+		<script src="load.js" externals="
+			https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js,
+			https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.5.2/js/jquery.overlayScrollbars.js,
+			https://cdnjs.cloudflare.com/ajax/libs/three.js/97/three.min.js
+		"></script>
 	</head>
 	<body>
 		<div class="movePreviewWrapper"></div>
@@ -73,6 +74,6 @@
 				As you type into the input field, it will automatically make suggestions; you can also press tab to auto-complete.
 			</p>
 		</div></div>
-		<img src="loading.svg" width="100px" height="100px" class="loading"></img>
+		<div class="loading"></div>
 	</body>
 </html>
