@@ -94,8 +94,11 @@
 
 			updateProgress(currentProgress);
 
-			if(currentProgress === 1)
-				evalFile("index")
+			if(currentProgress === 1) {
+				evalFile("index");
+				$(".loading").addClass("fade");
+				setTimeout(() => $(".loading").remove(), 600);
+			}
 		}, 10)
 	}
 

@@ -170,13 +170,26 @@ a:hover {
 }
 
 .loading {
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+
+	position: absolute;
+
+	padding: 0;
+
+	background: #151820;
+	transition: opacity .5s;
+}
+
+.loading svg {
+	height: 100%;
 	position: absolute;
 	left: 50%;
 	top: 50%;
-	padding: 0;
 	transform: translate(-50%, -50%);
 }
 
-canvas + .loading {
-	display: none;
+.loading.fade {
+	opacity: 0;
 }

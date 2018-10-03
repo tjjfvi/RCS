@@ -38,7 +38,7 @@ $(() => {
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = t.PCFShadowMap;
 	renderer.setSize(window.innerWidth, window.innerHeight);
-	$(renderer.domElement).insertBefore(".loading");
+	$(renderer.domElement).appendTo("body");
 
 	const cube = new t.Group();
 	cube.name = "Cube";
