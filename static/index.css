@@ -197,3 +197,18 @@ a:hover {
 .loading.fade {
 	opacity: 0;
 }
+
+.GitHubMark {
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+
+	position: absolute;
+	right: 20px;
+	top: 20px;
+}
+
+.GitHubMark img {
+	max-width: 100%;
+	max-height: 100%;
+}
