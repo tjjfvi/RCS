@@ -12,17 +12,27 @@ const createLoadPath = require("./createLoadPath.js");
 let nextLoadSvg = createLoadPath();
 
 router.get("/jsFiles.json", async (req, res) => {
+	let variation = req.baseUrl.slice(1);
+
 	let paths = await fs.readdir(__dirname + "/static/js/");
 
 	paths.sort();
 
-	let stats = await Promise.all(paths.map(p => fs.stat(__dirname + "/static/js/" + p)));
+	let redact = stats => ({ size: stats.size });
 
-	let slicedPaths = paths.map(p => p.slice(0, -3));
+	let statss = Object.assign({}, ...Object.entries(Object.assign({}, ...(await Promise.all(paths.map(async (p, i) => {
+		let stats = await fs.stat(__dirname + "/static/js/" + p);
 
-	let properties = slicedPaths.map((p, i) => `\t${JSON.stringify(p)}: { "size": ${stats[i].size} },`);
+		if(!stats.isDirectory() && variation)
+			return { [paths[i]]: redact(stats) };
 
-	let json = `{\n${properties.join("\n").slice(0, -1)}\n}`;
+		return {
+			[paths[i]]: redact(await fs.stat(__dirname + `/static/js/${p}/${variation}.js`)),
+			["index/" + paths[i]]: redact(await fs.stat(__dirname + `/static/js/${p}/index.js`)),
+		};
+	}))))).map(([k, v]) => ({ [k.slice(0, -3)]: v })));
+
+	let json = JSON.stringify(statss);
 
 	res.set("Content-Type", "application/json").send(json);
 })
@@ -40,6 +50,11 @@ router.get("/loading.svg", (req, res) => {
 router.get("/js/*", async (req, res, next) => {
 	let base = req.url.slice(4);
 	let variation = req.baseUrl.slice(1) || "index";
+
+	if(base.startsWith("index/")) {
+		variation = "index";
+		base = base.slice(6);
+	}
 
 	console.log(base, variation);
 
