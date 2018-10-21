@@ -1,6 +1,8 @@
 
 $(() => {
 
+	console.log("Variation", require("test"));
+
 	const {
 
 		Pieces,

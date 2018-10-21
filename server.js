@@ -37,7 +37,41 @@ router.get("/loading.svg", (req, res) => {
 	nextLoadSvg = createLoadPath();
 })
 
-router.use(express.static(__dirname + "/static"));
+router.get("/js/*", async (req, res, next) => {
+	let base = req.url.slice(4);
+	let variation = req.baseUrl.slice(1) || "index";
+
+	console.log(base, variation);
+
+	let path = __dirname + "/static/js/" + base;
+
+	let stats = await fs.stat(path);
+
+	if(stats.isFile())
+		return res.sendFile(path);
+
+	return res.sendFile(path + "/" + variation + ".js");
+});
+
+router.get("/", (req, res) => res.sendFile(__dirname + "/static/" + "index.html"));
+
+router.use(async (req, res, next) => {
+	let path = __dirname + "/static/" + req.url
+
+	if(await fs.exists(path)) return res.sendFile(path);
+
+	next();
+});
+
+require("./variants.json").map(v => {
+	router.get("/" + v, (req, res, next) => {
+		if(!req.url.endsWith("/"))
+			return res.redirect(req.baseUrl + req.url + "/");
+
+		next();
+	});
+	router.use("/" + v, router);
+})
 
 if(require.main === module) {
 	server.use(router);
