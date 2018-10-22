@@ -23,7 +23,7 @@ router.get("/jsFiles.json", async (req, res) => {
 	let statss = Object.assign({}, ...Object.entries(Object.assign({}, ...(await Promise.all(paths.map(async (p, i) => {
 		let stats = await fs.stat(__dirname + "/static/js/" + p);
 
-		if(!stats.isDirectory() && variation)
+		if(!stats.isDirectory() || !variation)
 			return { [paths[i]]: redact(stats) };
 
 		return {

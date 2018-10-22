@@ -1,5 +1,5 @@
 
-module.exports = ({ config }) => {
+module.exports = ({ config = {} }) => {
 	const cubeletSize = .628;
 	const tileThickness = .05;
 	const cubeletSeperation = .05;
