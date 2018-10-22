@@ -1,5 +1,5 @@
 
-module.exports = () => {
+module.exports = ({ config }) => {
 	const cubeletSize = .628;
 	const tileThickness = .05;
 	const cubeletSeperation = .05;
@@ -54,7 +54,7 @@ module.exports = () => {
 			let tile = createTile(faceKey, dirKey);
 			place.split("").map(dirKey => {
 				let face = faces[dirKey];
-				tile.position["xyz"[face.axis]] = face.dir * (cubeletSize + cubeletSeperation);
+				tile.position["xyz"[face.axis]] = face.dir * (cubeletSize + cubeletSeperation) * (config["2x2x2"] ? .5 : 1);
 			});
 			let face = faces[dirKey];
 			tile.position["xyz"[face.axis]] += face.dir * (cubeletSize/2 - tileThickness/2);
@@ -62,6 +62,9 @@ module.exports = () => {
 		});
 
 		pieces[place.split("").sort().join("")] = cubelet;
+
+		if(config["2x2x2"] && cubeletKey.length !== 3)
+			cubelet.visible = false;
 
 		cubelet.userData.originalPlace = place;
 		cubelet.userData.originalPiece = cubeletKey;
