@@ -56,8 +56,6 @@ router.get("/js/*", async (req, res, next) => {
 		base = base.slice(6);
 	}
 
-	console.log(base, variation);
-
 	let path = __dirname + "/static/js/" + base;
 
 	let stats = await fs.stat(path);
