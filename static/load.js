@@ -23,13 +23,11 @@
 
 	let $s, length, totalLength, checks, interval;
 
-	console.log(loadSvg);
+	let loadeds = {};
+	let totals = Object.assign({}, ...Object.entries(jsFiles).map(([k, v]) => ({ [k]: v.size })));
+	let success = {};
 
 	initLoadSvg();
-
-	let loadeds = {};
-	let totals = Object.assign(...Object.entries(jsFiles).map(([k, v]) => ({ [k]: v.size })));
-	let success = {};
 
 	let externals = $(script).attr("externals").trim().split(/,\s+/g).map(e => e.trim()).map(e => {
 		let [file, size] = e.split(" ");

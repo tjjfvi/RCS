@@ -9,10 +9,17 @@ const fs = require("fs-extra");
 
 const createLoadPath = require("./createLoadPath.js");
 
+const variants = require("./variants.json");
+
+const variantAliases = new Proxy({}, {
+	get: (target, key) =>
+		target[key] || resolveVariantAliases(key)
+});
+
 let nextLoadSvg = createLoadPath();
 
 router.get("/jsFiles.json", async (req, res) => {
-	let variation = req.baseUrl.slice(1);
+	let variant = req.baseUrl.slice(1) || "index";
 
 	let paths = await fs.readdir(__dirname + "/static/js/");
 
@@ -20,17 +27,40 @@ router.get("/jsFiles.json", async (req, res) => {
 
 	let redact = stats => ({ size: stats.size });
 
-	let statss = Object.assign({}, ...Object.entries(Object.assign({}, ...(await Promise.all(paths.map(async (p, i) => {
-		let stats = await fs.stat(__dirname + "/static/js/" + p);
+	let statss = {};
 
-		if(!stats.isDirectory() || !variation)
-			return { [paths[i]]: redact(stats) };
+	let addStats = file => {
+		let key = file.slice(0, -3);
 
-		return {
-			[paths[i]]: redact(await fs.stat(__dirname + `/static/js/${p}/${variation}.js`)),
-			["index/" + paths[i]]: redact(await fs.stat(__dirname + `/static/js/${p}/index.js`)),
-		};
-	}))))).map(([k, v]) => ({ [k.slice(0, -3)]: v })));
+		if(statss[key]) return statss[key];
+
+		statss[key] = (async () => {
+
+			let [v, b] = key.includes("/") ? file.split("/") : [variant, file];
+
+			let [path, variantUsed] = await resolveVariantPath(b, v, true);
+
+			if(v !== variant && (!variantUsed || (v !== variant && v !== "index" && variantUsed === "index")))
+				return;
+
+			return redact(await fs.stat(path));
+
+		})()
+
+		return statss[key];
+	}
+
+	let addStatss = (base, variant, relative) => {
+		addStats((relative ? "" : variant + "/") + base);
+
+		variants[variantAliases[variant]].map(variant =>
+			addStatss(base, variant, false)
+		);
+	};
+
+	paths.map(p => addStatss(p, variant, true));
+
+	statss = Object.assign({}, ...(await Promise.all(Object.entries(statss).map(async ([k, v]) => ({ [k]: await v })))));
 
 	let json = JSON.stringify(statss);
 
@@ -49,21 +79,12 @@ router.get("/loading.svg", (req, res) => {
 
 router.get("/js/*", async (req, res, next) => {
 	let base = req.url.slice(4);
-	let variation = req.baseUrl.slice(1) || "index";
+	let variant = req.baseUrl.slice(1) || "index";
 
-	if(base.startsWith("index/")) {
-		variation = "index";
-		base = base.slice(6);
-	}
+	if(base.split("/").length === 2)
+		[variant, base] = base.split("/");
 
-	let path = __dirname + "/static/js/" + base;
-
-	let stats = await fs.stat(path);
-
-	if(stats.isFile())
-		return res.sendFile(path);
-
-	return res.sendFile(path + "/" + variation + ".js");
+	return res.sendFile(await resolveVariantPath(base, variant));
 });
 
 router.get("/", (req, res) => res.sendFile(__dirname + "/static/" + "index.html"));
@@ -76,15 +97,42 @@ router.use(async (req, res, next) => {
 	next();
 });
 
-require("./variants.json").map(v => {
-	router.get("/" + v, (req, res, next) => {
+Object.keys(variants).map(variant => {
+	router.get("/" + variant, (req, res, next) => {
 		if(!req.url.endsWith("/"))
 			return res.redirect(req.baseUrl + req.url + "/");
 
 		next();
 	});
-	router.use("/" + v, router);
+	router.use("/" + variant, router);
 })
+
+function resolveVariantAliases(variant){
+	while(typeof variants[variant] === "string")
+		variant = variants[variant];
+
+	return variant;
+}
+
+async function resolveVariantPath(base, variant, giveVariant = false){
+	variant = variantAliases[variant];
+
+	let path = __dirname + "/static/js/" + base;
+
+	let stats = await fs.stat(path);
+
+	if(stats.isFile())
+		return giveVariant ? [path, ""] : path;
+
+	let variantPath;
+
+	let fallbacks = (variants[variant] || []).concat(["index"]);
+
+	while(!(await fs.exists(variantPath = path + "/" + variant + ".js")))
+		variant = fallbacks.shift();
+
+	return giveVariant ? [variantPath, variant] : variantPath;
+}
 
 if(require.main === module) {
 	server.use(router);
